@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import AdminDashboard from './AdminDashboard';
-import UserDashboard from './UserDashboard';
-import DeveloperDashboard from './DeveloperDashboard';
+import AdminDashboard from './admin/AdminDashboard';
+import UserDashboard from './user/UserDashboard';
+import DeveloperDashboard from './developer/DeveloperDashboard';
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
