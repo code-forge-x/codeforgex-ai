@@ -1,0 +1,142 @@
+:root {
+  --primary-color: #009688;
+  --dark-color: #333333;
+  --light-color: #f4f4f4;
+  --danger-color: #dc3545;
+  --success-color: #28a745;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  background-color: #fff;
+  color: #333;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  color: #777;
+}
+
+ul {
+  list-style: none;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  width: 100%;
+  background-color: var(--primary-color);
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.navbar ul {
+  display: flex;
+}
+
+.navbar h1 {
+  font-size: 1.5rem;
+}
+
+.navbar a {
+  color: white;
+  padding: 0.45rem;
+  margin: 0 0.25rem;
+}
+
+.navbar a:hover {
+  color: var(--light-color);
+}
+
+/* Forms */
+.form-group {
+  margin: 1.2rem 0;
+}
+
+input[type='text'],
+input[type='email'],
+input[type='password'],
+select,
+textarea {
+  display: block;
+  width: 100%;
+  padding: 0.4rem;
+  font-size: 1.2rem;
+  border: 1px solid #ccc;
+}
+
+input[type='submit'],
+button {
+  display: inline-block;
+  background: var(--primary-color);
+  color: #fff;
+  padding: 0.4rem 1.3rem;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  transition: opacity 0.2s ease-in;
+  outline: none;
+}
+
+input[type='submit']:hover,
+button:hover {
+  opacity: 0.8;
+}
+
+/* Alerts */
+.alert-error {
+  background: var(--danger-color);
+  color: #fff;
+  padding: 0.8rem;
+  margin: 1rem 0;
+  border-radius: 5px;
+}
+
+/* Registration & Login Forms */
+.register-container,
+.login-container {
+  max-width: 500px;
+  margin: 2rem auto;
+  overflow: hidden;
+  padding: 0 2rem;
+}
+
+.register-container h1,
+.login-container h1 {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Dashboard */
+.dashboard-container {
+  padding: 2rem;
+}
+
+.dashboard-container h1 {
+  margin-bottom: 1rem;
+}
