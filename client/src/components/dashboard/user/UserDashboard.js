@@ -9,6 +9,7 @@ import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import SendIcon from '@mui/icons-material/Send';
 import NewProjectModal from './components/NewProjectModal';
+import ChatWindow from './components/ChatWindow';
 
 // Chat session structure: { id, name, messages: [] }
 
@@ -34,6 +35,7 @@ const UserDashboard = () => {
   const [selectedSessionId, setSelectedSessionId] = useState(chatSessions[0].id);
   const [tabIndex, setTabIndex] = useState(0);
   const [chatInput, setChatInput] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
 
   // Helper to get selected session
   const selectedSession = chatSessions.find(s => s.id === selectedSessionId);
@@ -193,36 +195,9 @@ const UserDashboard = () => {
                 mt: 2,
                 mb: 2,
                 mr: 0,
+                overflow: 'hidden',
               }}>
-                <Typography variant="h6" sx={{ color: '#fff', p: 2, borderBottom: '1px solid #222', flexShrink: 0 }}>Chat Window</Typography>
-                <Box sx={{ flex: 1, overflowY: 'auto', p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {selectedSession.messages.length === 0 ? (
-                    <Paper elevation={0} sx={{ bgcolor: '#222', color: '#bbb', textAlign: 'center', mt: 4, p: 2, borderRadius: 2, fontStyle: 'italic', maxWidth: 320, mx: 'auto' }}>
-                      No messages yet. Start the conversation!
-                    </Paper>
-                  ) : (
-                    selectedSession.messages.map((msg, idx) => (
-                      <Paper key={idx} sx={{ p: 2, bgcolor: msg.role === 'user' ? '#111' : '#292929', color: '#fff', borderRadius: 2, alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
-                        <Typography variant="body1">{msg.content}</Typography>
-                        <Typography variant="caption" sx={{ color: '#888', mt: 0.5, display: 'block', textAlign: msg.role === 'user' ? 'right' : 'left' }}>{new Date(msg.timestamp).toLocaleTimeString()}</Typography>
-                      </Paper>
-                    ))
-                  )}
-                </Box>
-                <Box component="form" onSubmit={handleSendMessage} sx={{ display: 'flex', alignItems: 'center', p: 2, borderTop: '1px solid #222', bgcolor: '#232323', flexShrink: 0 }}>
-                  <TextField
-                    variant="filled"
-                    fullWidth
-                    placeholder="Type your message here..."
-                    value={chatInput}
-                    onChange={e => setChatInput(e.target.value)}
-                    InputProps={{ disableUnderline: true, sx: { bgcolor: '#181818', color: '#fff', borderRadius: 2 } }}
-                    sx={{ mr: 2 }}
-                  />
-                  <IconButton type="submit" color="primary" sx={{ bgcolor: '#ff9800', color: '#fff', borderRadius: 2, '&:hover': { bgcolor: '#fb8c00' } }}>
-                    <SendIcon />
-                  </IconButton>
-                </Box>
+                <ChatWindow chatHistory={chatHistory} setChatHistory={setChatHistory} />
               </Box>
               {/* Tabs Section as its own bordered card */}
               <Box sx={{ mr: 2, ml: 0, height: 'calc(90% + 28px)', maxHeight: 'calc(90% + 28px)', display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, mt: 2, mb: 2 }}>
