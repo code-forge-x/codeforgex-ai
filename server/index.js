@@ -19,13 +19,15 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const chatRoutes = require('./routes/chat');
+const authRoutes = require('./routes/api/auth');
+const userRoutes = require('./routes/api/users');
+const chatRoutes = require('./routes/api/chat');
+const promptManagementRoutes = require('./routes/api/promptManagement');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/prompts', promptManagementRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
