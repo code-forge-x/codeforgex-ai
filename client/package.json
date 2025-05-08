@@ -19,8 +19,8 @@
         "web-vitals": "^2.1.4"
     },
     "scripts": {
-        "start": "set GENERATE_SOURCEMAP=false && react-scripts start",
-        "build": "set GENERATE_SOURCEMAP=false && react-scripts build",
+        "start": "GENERATE_SOURCEMAP=false react-scripts start",
+        "build": "GENERATE_SOURCEMAP=false react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject"
     },
@@ -42,9 +42,5 @@
             "last 1 safari version"
         ]
     },
-    "proxy": "http://localhost:5000",
-    "devDependencies": {
-        "webpack": "^5.89.0",
-        "webpack-dev-server": "^4.15.1"
-    }
+    "proxy": "http://localhost:5000"
 }
