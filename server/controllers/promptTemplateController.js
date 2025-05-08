@@ -1,12 +1,12 @@
-const PromptTemplate = require('../models/PromptTemplate');
-const PromptVersionLog = require('../models/PromptVersionLog');
-const PromptPerformance = require('../models/PromptPerformance');
-// const promptManager = require('../services/promptManager'); // To be implemented
-// const aiClient = require('../services/aiClient'); // To be implemented
-// const logger = require('../utils/logger'); // To be implemented
+import PromptTemplate from '../models/PromptTemplate.js';
+import PromptVersionLog from '../models/PromptVersionLog.js';
+import PromptPerformance from '../models/PromptPerformance.js';
+// import promptManager from '../services/promptManager.js'; // To be implemented
+// import aiClient from '../services/aiClient.js'; // To be implemented
+// import logger from '../utils/logger.js'; // To be implemented
 
 // Get all templates with pagination
-exports.getAllTemplates = async (req, res) => {
+export const getAllTemplates = async (req, res) => {
   try {
     const { page = 1, limit = 10, category, active, search } = req.query;
     const query = {};
@@ -37,7 +37,7 @@ exports.getAllTemplates = async (req, res) => {
 };
 
 // Get template by ID
-exports.getTemplateById = async (req, res) => {
+export const getTemplateById = async (req, res) => {
   try {
     const template = await PromptTemplate.findById(req.params.id);
     if (!template) return res.status(404).json({ message: 'Template not found' });
@@ -48,7 +48,7 @@ exports.getTemplateById = async (req, res) => {
 };
 
 // Get template by name (all versions)
-exports.getTemplateByName = async (req, res) => {
+export const getTemplateByName = async (req, res) => {
   try {
     const templates = await PromptTemplate.find({ name: req.params.name }).sort({ version: -1 });
     if (!templates || templates.length === 0) return res.status(404).json({ message: 'Template not found' });
@@ -59,7 +59,7 @@ exports.getTemplateByName = async (req, res) => {
 };
 
 // Get active template by name
-exports.getActiveTemplateByName = async (req, res) => {
+export const getActiveTemplateByName = async (req, res) => {
   try {
     const template = await PromptTemplate.findOne({ name: req.params.name, active: true });
     if (!template) return res.status(404).json({ message: 'Active template not found' });
@@ -70,7 +70,7 @@ exports.getActiveTemplateByName = async (req, res) => {
 };
 
 // Create new template
-exports.createTemplate = async (req, res) => {
+export const createTemplate = async (req, res) => {
   try {
     const { name, description, category, content, tags, parameters } = req.body;
     const existingTemplate = await PromptTemplate.findOne({ name });
@@ -103,7 +103,7 @@ exports.createTemplate = async (req, res) => {
 };
 
 // Update template (creates new version)
-exports.updateTemplate = async (req, res) => {
+export const updateTemplate = async (req, res) => {
   try {
     const { description, category, content, tags, parameters, notes } = req.body;
     const currentTemplate = await PromptTemplate.findById(req.params.id);
@@ -137,7 +137,7 @@ exports.updateTemplate = async (req, res) => {
 };
 
 // Activate template
-exports.activateTemplate = async (req, res) => {
+export const activateTemplate = async (req, res) => {
   try {
     const { notes } = req.body;
     const template = await PromptTemplate.findById(req.params.id);
@@ -177,4 +177,4 @@ exports.activateTemplate = async (req, res) => {
   }
 };
 
-// Other endpoints (testTemplate, getTemplateVersions, compareTemplateVersions, getTemplatePerformance) to be implemented after services are in place. 
+// Other endpoints (testTemplate, getTemplateVersions, compareTemplateVersions, getTemplatePerformance) to be implemented after services are in place.

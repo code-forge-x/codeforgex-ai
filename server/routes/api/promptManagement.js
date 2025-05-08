@@ -1,11 +1,13 @@
-const express = require('express');
+import express from 'express';
+import promptTemplateController from '../../controllers/promptTemplateController.js';
+import promptComponentController from '../../controllers/promptComponentController.js';
+import promptPerformanceController from '../../controllers/promptPerformanceController.js';
+
 const router = express.Router();
+
 // Placeholder middleware for auth and admin
 const auth = (req, res, next) => { req.user = { email: 'admin@codeforgex.com' }; next(); };
 const admin = (req, res, next) => { next(); };
-const promptTemplateController = require('../../controllers/promptTemplateController');
-const promptComponentController = require('../../controllers/promptComponentController');
-const promptPerformanceController = require('../../controllers/promptPerformanceController');
 
 // Require admin role for all routes in this router
 router.use(auth, admin);
@@ -38,4 +40,4 @@ router.get('/performance', promptPerformanceController.getPerformanceMetrics);
 router.get('/performance/templates', promptPerformanceController.getPerformanceByTemplate);
 router.get('/performance/timeline', promptPerformanceController.getPerformanceTimeline);
 
-module.exports = router; 
+export default router;

@@ -1,9 +1,9 @@
-const PromptPerformance = require('../models/PromptPerformance');
-const PromptTemplate = require('../models/PromptTemplate');
-// const logger = require('../utils/logger'); // To be implemented
+import PromptPerformance from '../models/PromptPerformance.js';
+import PromptTemplate from '../models/PromptTemplate.js';
+// import logger from '../utils/logger.js'; // To be implemented
 
 // Get aggregated performance metrics
-exports.getPerformanceMetrics = async (req, res) => {
+export const getPerformanceMetrics = async (req, res) => {
   try {
     const { days = 30 } = req.query;
     const startDate = new Date();
@@ -77,7 +77,7 @@ exports.getPerformanceMetrics = async (req, res) => {
 };
 
 // Get performance metrics by template
-exports.getPerformanceByTemplate = async (req, res) => {
+export const getPerformanceByTemplate = async (req, res) => {
   try {
     const { days = 30 } = req.query;
     const startDate = new Date();
@@ -131,7 +131,7 @@ exports.getPerformanceByTemplate = async (req, res) => {
 };
 
 // Get performance timeline
-exports.getPerformanceTimeline = async (req, res) => {
+export const getPerformanceTimeline = async (req, res) => {
   try {
     const { days = 30, interval = 'day' } = req.query;
     const startDate = new Date();
@@ -183,4 +183,4 @@ exports.getPerformanceTimeline = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
-}; 
+};
