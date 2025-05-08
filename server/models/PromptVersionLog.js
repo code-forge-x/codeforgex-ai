@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
 
 const PromptVersionLogSchema = new Schema({
   templateId: { type: Schema.Types.ObjectId, ref: 'PromptTemplate', required: true, index: true },
@@ -19,4 +19,5 @@ const PromptVersionLogSchema = new Schema({
 
 PromptVersionLogSchema.index({ templateName: 1, timestamp: -1 });
 
-module.exports = mongoose.model('PromptVersionLog', PromptVersionLogSchema); 
+const PromptVersionLog = mongoose.model('PromptVersionLog', PromptVersionLogSchema);
+export default PromptVersionLog; 

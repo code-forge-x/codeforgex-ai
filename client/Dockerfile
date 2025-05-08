@@ -4,17 +4,16 @@ WORKDIR /usr/src/app
 # Copy package files
 COPY package*.json ./
 
+# Clean up any previous installs (in case of cache)
+RUN rm -rf node_modules package-lock.json
+
+# Install dependencies using npm ci for faster and more reliable builds
 # Install dependencies
 RUN npm install
-RUN npm install -g react-scripts@5.0.1
 
 # Copy all other source code
 COPY . .
 
-# Expose port for development server
-EXPOSE 3000
-
-# Set environment variables
 ENV NODE_ENV=development
 ENV WDS_SOCKET_PORT=0
 ENV CHOKIDAR_USEPOLLING=true
