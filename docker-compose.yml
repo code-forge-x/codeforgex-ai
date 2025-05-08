@@ -1,5 +1,4 @@
-﻿
-services:
+﻿services:
   server:
     build: 
       context: ./server
