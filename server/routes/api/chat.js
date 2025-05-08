@@ -1,5 +1,7 @@
-const express = require('express');
-const { authenticate } = require('../middleware/auth');
+import express from 'express';
+import { authenticate } from '../../middleware/auth.js';
+import fetch from 'node-fetch';
+
 const router = express.Router();
 
 // POST /api/chat
@@ -29,7 +31,6 @@ router.post('/', authenticate, async (req, res) => {
   console.log('Claude API request body:', claudeBody);
 
   try {
-    const fetch = (await import('node-fetch')).default;
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -84,4 +85,4 @@ router.post('/', authenticate, async (req, res) => {
   }
 });
 
-module.exports = router; 
+export default router;

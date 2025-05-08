@@ -4,30 +4,46 @@ import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/routing/PrivateRoute';
 import './App.css';
 import { Box } from '@mui/material';
+import PromptManagementDashboard from './components/dashboard/admin/PromptManagementDashboard';
+import UserDashboard from './components/dashboard/user/UserDashboard';
+import AdminDashboard from './components/dashboard/admin/AdminDashboard';
+import Prompts from './components/dashboard/user/Prompts';
 
 // Import components with correct naming
 import Login from './components/auth/Login'; // This should import the default export from Login.js
 import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
 import Navbar from './components/layout/Navbar';
+import AdminLayout from './components/dashboard/admin/AdminLayout';
 
 function AppContent() {
   const location = useLocation();
-  const showNavbar = !location.pathname.startsWith('/dashboard');
-  const isDashboard = location.pathname.startsWith('/dashboard');
+  const showNavbar = !location.pathname.startsWith('/dashboard') && !location.pathname.startsWith('/admin/dashboard');
+  const isUserDashboard = location.pathname.startsWith('/dashboard');
+  const isAdminDashboard = location.pathname.startsWith('/admin/dashboard');
   return (
     <>
       {showNavbar && <Navbar />}
-      {isDashboard ? (
+      {(isUserDashboard || isAdminDashboard) ? (
         <Routes>
           <Route
             path="/dashboard"
             element={
               <PrivateRoute>
-                <Dashboard />
+                <UserDashboard />
               </PrivateRoute>
             }
           />
+          <Route path="/dashboard/prompts" element={
+            <PrivateRoute>
+              <Prompts />
+            </PrivateRoute>
+          } />
+          {/* Admin routes with layout */}
+          <Route path="/admin/dashboard" element={<PrivateRoute allowedRoles={['admin']}><AdminLayout /></PrivateRoute>}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="prompts" element={<PromptManagementDashboard />} />
+          </Route>
         </Routes>
       ) : (
         <div className="container">
