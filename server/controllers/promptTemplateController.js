@@ -177,4 +177,12 @@ export const activateTemplate = async (req, res) => {
   }
 };
 
-// Other endpoints (testTemplate, getTemplateVersions, compareTemplateVersions, getTemplatePerformance) to be implemented after services are in place.
+export default {
+  getAllTemplates,
+  getTemplateById,
+  getTemplateByName,
+  getActiveTemplateByName,
+  createTemplate,
+  updateTemplate,
+  activateTemplate
+};

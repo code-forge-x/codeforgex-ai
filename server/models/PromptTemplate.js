@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
 
 const PromptTemplateSchema = new Schema({
   name: { type: String, required: true, trim: true, unique: true, index: true },
@@ -41,4 +41,5 @@ PromptTemplateSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('PromptTemplate', PromptTemplateSchema); 
+const PromptTemplate = mongoose.model('PromptTemplate', PromptTemplateSchema);
+export default PromptTemplate; 
