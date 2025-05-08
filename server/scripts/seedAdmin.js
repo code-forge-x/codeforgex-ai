@@ -1,12 +1,10 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const dotenv = require('dotenv');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+import User from '../models/User.js';
 
 // Load environment variables
 dotenv.config();
-
-// Import User model
-const User = require('../models/User');
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
