@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
@@ -6,6 +6,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install dependencies including development dependencies
+RUN npm install -g nodemon
 RUN npm install
 
 # Copy all other source code

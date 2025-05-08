@@ -8,6 +8,7 @@ import SendIcon from '@mui/icons-material/Send';
 import Avatar from '@mui/material/Avatar';
 import Stack from '@mui/material/Stack';
 import CircularProgress from '@mui/material/CircularProgress';
+import API_URL from '../../../../api';
 
 const ChatWindow = ({ selectedProject, chatHistory, setChatHistory }) => {
   const [message, setMessage] = useState('');
@@ -36,7 +37,7 @@ const ChatWindow = ({ selectedProject, chatHistory, setChatHistory }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/chat', {
+      const response = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,11 +1,9 @@
 import React from 'react';
+import Box from '@mui/material/Box';
 
 const AdminDashboard = () => {
   return (
-    <div className="admin-dashboard">
-      <h1>Welcome Admin</h1>
-      <p>This is the admin dashboard. From here you can manage users, system configurations, and monitor performance.</p>
-    </div>
+    <Box sx={{ p: 4, bgcolor: '#fff', minHeight: '100vh' }} />
   );
 };
 
