@@ -7,7 +7,7 @@ const PromptVersionLogSchema = new Schema({
   version: { type: Number, required: true },
   action: {
     type: String,
-    enum: ['created', 'activated', 'deactivated', 'edited', 'deleted'],
+    enum: ['created', 'activated', 'deactivated', 'edited', 'updated', 'deleted'],
     required: true,
     index: true
   },
