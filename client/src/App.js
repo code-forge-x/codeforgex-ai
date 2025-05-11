@@ -8,6 +8,7 @@ import PromptManagementDashboard from './components/dashboard/admin/PromptManage
 import UserDashboard from './components/dashboard/user/UserDashboard';
 import AdminDashboard from './components/dashboard/admin/AdminDashboard';
 import Prompts from './components/dashboard/user/Prompts';
+import ComponentsDashboard from './components/dashboard/admin/ComponentsDashboard';
 
 // Import components with correct naming
 import Login from './components/auth/Login'; // This should import the default export from Login.js
@@ -43,6 +44,7 @@ function AppContent() {
           <Route path="/admin/dashboard" element={<PrivateRoute allowedRoles={['admin']}><AdminLayout /></PrivateRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="prompts" element={<PromptManagementDashboard />} />
+            <Route path="components" element={<ComponentsDashboard />} />
           </Route>
         </Routes>
       ) : (

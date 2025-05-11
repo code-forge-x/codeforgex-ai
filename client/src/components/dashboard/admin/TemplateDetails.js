@@ -152,7 +152,9 @@ export default function TemplateDetails({ template, onBack, onUpdate }) {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.post(`${API_URL}/prompts/templates/${version._id}/activate`);
+      const response = await axios.post(`${API_URL}/prompts/templates/${version._id}/activate`, {
+        notes: `Activated version ${version.version}`
+      });
       setActivateDialog({ open: false, version: null });
       setSuccess(response.data.message || 'Version activated successfully');
       

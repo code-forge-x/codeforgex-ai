@@ -7,6 +7,7 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 RUN npm install -g react-scripts@5.0.1
+RUN npm install react-icons --save
 
 # Copy all other source code
 COPY . .

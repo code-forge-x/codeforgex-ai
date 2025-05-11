@@ -6,6 +6,7 @@ import { diffLines, diffWords, diffWordsWithSpace } from 'diff';
 import { marked } from 'marked';
 import PDFDocument from 'pdfkit';
 import hljs from 'highlight.js';
+import Component from '../models/Component.js';
 // import promptManager from '../services/promptManager.js'; // To be implemented
 // import aiClient from '../services/aiClient.js'; // To be implemented
 // import logger from '../utils/logger.js'; // To be implemented
@@ -1087,6 +1088,64 @@ const compareTags = (tags1, tags2) => {
   };
 };
 
+// Generate template preview
+export const generatePreview = async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Content is required'
+      });
+    }
+
+    // Find all component references in the content
+    const componentRegex = /{{ include ([^}]+) }}/g;
+    let match;
+    const componentNames = new Set();
+    
+    while ((match = componentRegex.exec(content)) !== null) {
+      componentNames.add(match[1].trim());
+    }
+
+    // Fetch all referenced components
+    const components = await Component.find({
+      name: { $in: Array.from(componentNames) },
+      active: true
+    });
+
+    // Create a map of component names to their content
+    const componentMap = new Map(
+      components.map(component => [component.name, component.content])
+    );
+
+    // Replace component references with their content
+    let previewContent = content;
+    for (const [name, componentContent] of componentMap) {
+      const regex = new RegExp(`{{ include ${name} }}`, 'g');
+      previewContent = previewContent.replace(regex, componentContent);
+    }
+
+    // Replace any remaining component references with error messages
+    previewContent = previewContent.replace(
+      /{{ include ([^}]+) }}/g,
+      '[ERROR: Component "$1" not found]'
+    );
+
+    res.json({
+      success: true,
+      preview: previewContent
+    });
+  } catch (error) {
+    console.error('Error generating preview:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Error generating preview',
+      error: error.message 
+    });
+  }
+};
+
 export default {
   getAllTemplates,
   getTemplateById,
@@ -1100,5 +1159,6 @@ export default {
   getTemplateVersionsByName,
   rollbackTemplate,
   compareVersions,
-  getVersionDiff
+  getVersionDiff,
+  generatePreview
 };
