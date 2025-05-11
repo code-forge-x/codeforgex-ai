@@ -26,20 +26,23 @@ router.get('/templates/:id/versions', authenticateToken, promptTemplateControlle
 router.get('/templates/name/:name/versions', authenticateToken, promptTemplateController.getTemplateVersionsByName);
 router.post('/templates/:id/rollback', authenticateToken, promptTemplateController.rollbackTemplate);
 router.get('/templates/:id/compare/:version1/:version2', authenticateToken, promptTemplateController.compareVersions);
-router.get('/templates/:id/diff/:version1/:version2/:format?', authenticateToken, promptTemplateController.getVersionDiff);
+router.get('/templates/:id/diff/:version1/:version2', authenticateToken, promptTemplateController.getVersionDiff);
+router.get('/templates/:id/diff/:version1/:version2/:format', authenticateToken, promptTemplateController.getVersionDiff);
+router.post('/templates/preview', authenticateToken, promptTemplateController.generatePreview);
 // router.post('/templates/:id/test', promptTemplateController.testTemplate); // To be implemented
 // router.get('/templates/:id/compare/:versionId', promptTemplateController.compareTemplateVersions); // To be implemented
 // router.get('/templates/:id/performance', promptTemplateController.getTemplatePerformance); // To be implemented
 
 // Component routes
-router.get('/components', promptComponentController.getAllComponents);
-router.get('/components/:id', promptComponentController.getComponentById);
+router.get('/components', authenticateToken, promptComponentController.getAllComponents);
+router.get('/components/:id', authenticateToken, promptComponentController.getComponentById);
 router.get('/components/name/:name', promptComponentController.getComponentByName);
 router.get('/components/name/:name/active', promptComponentController.getActiveComponentByName);
-router.post('/components', promptComponentController.createComponent);
-router.put('/components/:id', promptComponentController.updateComponent);
+router.post('/components', authenticateToken, promptComponentController.createComponent);
+router.put('/components/:id', authenticateToken, promptComponentController.updateComponent);
 router.post('/components/:id/activate', promptComponentController.activateComponent);
 router.get('/components/:id/usage', promptComponentController.getComponentUsage);
+router.delete('/components/:id', authenticateToken, promptComponentController.deleteComponent);
 
 // Performance routes
 router.get('/performance', promptPerformanceController.getPerformanceMetrics);
