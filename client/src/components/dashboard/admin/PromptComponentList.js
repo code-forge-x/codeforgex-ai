@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, Button, TextField, IconButton, Chip, CircularProgress, Dialog, DialogTitle,
-  DialogContent, DialogActions, DialogContentText
+  DialogContent, DialogActions, DialogContentText, Alert
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -10,7 +10,7 @@ import axios from 'axios';
 import PromptComponentForm from './PromptComponentForm';
 import API_URL from '../../../api';
 
-export default function PromptComponentList() {
+export default function PromptComponentList({ templateId }) {
   const [search, setSearch] = useState('');
   const [components, setComponents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,20 +20,23 @@ export default function PromptComponentList() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [componentToDelete, setComponentToDelete] = useState(null);
 
-  const fetchComponents = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/prompts/components`);
-      setComponents(response.data);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch components');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchComponents();
-  }, []);
+    const fetchComponents = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${API_URL}/prompts/components/${templateId}`);
+        setComponents(response.data.components || []);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch components');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (templateId) {
+      fetchComponents();
+    }
+  }, [templateId]);
 
   const handleOpen = (component = null) => {
     setSelectedComponent(component);
@@ -51,13 +54,15 @@ export default function PromptComponentList() {
   };
 
   const handleDeleteConfirm = async () => {
-    try {
-      await axios.delete(`${API_URL}/prompts/components/${componentToDelete.id}`);
-      await fetchComponents();
-      setDeleteDialogOpen(false);
-      setComponentToDelete(null);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete component');
+    if (window.confirm('Are you sure you want to delete this component?')) {
+      try {
+        await axios.delete(`${API_URL}/prompts/components/${componentToDelete._id}`);
+        setComponents(components.filter(c => c._id !== componentToDelete._id));
+        setDeleteDialogOpen(false);
+        setComponentToDelete(null);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to delete component');
+      }
     }
   };
 
@@ -67,10 +72,18 @@ export default function PromptComponentList() {
   );
 
   if (loading) return <CircularProgress />;
-  if (error) return <Typography color="error">{error}</Typography>;
+  if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
     <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6">
+          Components
+        </Typography>
+        <Button variant="contained" color="primary" onClick={() => handleOpen()}>
+          Add Component
+        </Button>
+      </Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
         <TextField
           label="Search components"
@@ -78,43 +91,50 @@ export default function PromptComponentList() {
           onChange={e => setSearch(e.target.value)}
           size="small"
         />
-        <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-          New Prompt Component
-        </Button>
       </Box>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Last Updated</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filtered.map(component => (
-              <TableRow key={component.id}>
-                <TableCell>{component.name}</TableCell>
-                <TableCell>{component.description}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={component.status}
-                    color={component.status === 'active' ? 'success' : 'default'}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>{component.updatedAt}</TableCell>
-                <TableCell>
-                  <IconButton size="small" onClick={() => handleOpen(component)}><EditIcon /></IconButton>
-                  <IconButton size="small" color="error" onClick={() => handleDeleteClick(component)}><DeleteIcon /></IconButton>
-                </TableCell>
+      {components.length === 0 ? (
+        <Alert severity="info">No components available for this template.</Alert>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {filtered.map((component) => (
+                <TableRow key={component._id}>
+                  <TableCell>{component.name}</TableCell>
+                  <TableCell>{component.type}</TableCell>
+                  <TableCell>{component.description}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={component.status}
+                      color={component.status === 'active' ? 'success' : 'warning'}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <IconButton size="small" onClick={() => handleOpen(component)}><EditIcon /></IconButton>
+                    <IconButton 
+                      size="small" 
+                      color="error"
+                      onClick={() => handleDeleteClick(component)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       <PromptComponentForm open={open} onClose={handleClose} component={selectedComponent} />
 

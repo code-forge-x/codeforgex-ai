@@ -184,3 +184,9 @@ export const getPerformanceTimeline = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+export default {
+  getPerformanceMetrics,
+  getPerformanceByTemplate,
+  getPerformanceTimeline
+};
