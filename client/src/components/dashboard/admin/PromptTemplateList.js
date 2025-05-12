@@ -20,7 +20,9 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  DialogContentText,
+  Dialog as MuiDialog
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
@@ -28,7 +30,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import HistoryIcon from '@mui/icons-material/History';
 import axios from 'axios';
 import API_URL from '../../../api';
-import PromptTemplateForm from './PromptTemplateForm';
+import TemplateEditor from '../prompts/TemplateEditor';
 import TemplateDetails from './TemplateDetails';
 
 export default function PromptTemplateList() {
@@ -37,7 +39,7 @@ export default function PromptTemplateList() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState({ open: false, template: null });
 
@@ -73,7 +75,7 @@ export default function PromptTemplateList() {
       return;
     }
     setEditingTemplate(templateToEdit);
-    setShowForm(true);
+    setShowEditor(true);
   };
 
   const handleDelete = (template) => {
@@ -105,13 +107,13 @@ export default function PromptTemplateList() {
     });
   };
 
-  const handleFormClose = () => {
-    setShowForm(false);
+  const handleEditorClose = () => {
+    setShowEditor(false);
     setEditingTemplate(null);
   };
 
-  const handleFormSuccess = () => {
-    handleFormClose();
+  const handleEditorSuccess = () => {
+    handleEditorClose();
     fetchTemplates();
   };
 
@@ -136,7 +138,7 @@ export default function PromptTemplateList() {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => setShowForm(true)}
+          onClick={() => setShowEditor(true)}
         >
           New Template
         </Button>
@@ -246,12 +248,22 @@ export default function PromptTemplateList() {
         </TableContainer>
       )}
 
-      <PromptTemplateForm
-        open={showForm}
-        onClose={handleFormClose}
-        template={editingTemplate}
-        onSuccess={handleFormSuccess}
-      />
+      {/* Fullscreen Dialog for TemplateEditor */}
+      <Dialog open={showEditor} onClose={handleEditorClose} fullScreen>
+        <DialogTitle>
+          {editingTemplate ? 'Edit Template' : 'Create New Template'}
+          <Button onClick={handleEditorClose} sx={{ position: 'absolute', right: 16, top: 16 }}>
+            Close
+          </Button>
+        </DialogTitle>
+        <DialogContent>
+          <TemplateEditor
+            template={editingTemplate}
+            onSuccess={handleEditorSuccess}
+            onClose={handleEditorClose}
+          />
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={deleteDialog.open}
