@@ -14,11 +14,13 @@ import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CodeIcon from '@mui/icons-material/Code';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import ExtensionIcon from '@mui/icons-material/Extension';
 
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
   { text: 'Users', icon: <PeopleIcon />, path: '/admin/dashboard/users' },
   { text: 'Prompt Management', icon: <FormatListBulletedIcon />, path: '/admin/dashboard/prompts' },
+  { text: 'Components', icon: <ExtensionIcon />, path: '/admin/dashboard/components' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/admin/dashboard/settings' }
 ];
 
