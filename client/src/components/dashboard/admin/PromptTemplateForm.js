@@ -1,47 +1,119 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControlLabel, Switch, Box, CircularProgress, Alert
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Box,
+  Alert,
+  Typography
 } from '@mui/material';
 import axios from 'axios';
 import API_URL from '../../../api';
 
-export default function PromptTemplateForm({ open, onClose, template = null }) {
+export default function PromptTemplateForm({ open, onClose, template, onSuccess }) {
   const [formData, setFormData] = useState({
-    name: template?.name || '',
-    description: template?.description || '',
-    content: template?.content || '',
-    parameters: template?.parameters ? JSON.stringify(template.parameters, null, 2) : '',
-    components: template?.components ? JSON.stringify(template.components, null, 2) : '',
-    status: template?.status || 'active'
+    name: '',
+    description: '',
+    category: 'component_generation',
+    content: '',
+    tags: '',
+    parameters: '[]'
   });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (template) {
+      // For editing, we don't allow changing the name
+      setFormData({
+        name: template.name || '',
+        description: template.description || '',
+        category: template.category || 'component_generation',
+        content: template.content || '',
+        tags: Array.isArray(template.tags) ? template.tags.join(', ') : '',
+        parameters: JSON.stringify(
+          Array.isArray(template.parameters) 
+            ? template.parameters.map(p => ({
+                name: p.name || '',
+                description: p.description || '',
+                required: p.required || false,
+                type: p.type || 'string',
+                defaultValue: p.defaultValue || ''
+              }))
+            : [],
+          null,
+          2
+        )
+      });
+    } else {
+      // For new template
+      setFormData({
+        name: '',
+        description: '',
+        category: 'component_generation',
+        content: '',
+        tags: '',
+        parameters: '[]'
+      });
+    }
+  }, [template]);
 
   const handleChange = (e) => {
-    const { name, value, checked } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'status' ? (checked ? 'active' : 'inactive') : value
+      [name]: value
     }));
   };
 
-  const handleSubmit = async () => {
-    setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setError(null);
+    setLoading(true);
+
     try {
+      // Parse parameters from JSON string
+      let parsedParameters = [];
+      try {
+        const paramsObj = JSON.parse(formData.parameters);
+        // Convert object to array if needed
+        if (typeof paramsObj === 'object' && !Array.isArray(paramsObj)) {
+          parsedParameters = Object.entries(paramsObj).map(([name, details]) => ({
+            name,
+            ...details
+          }));
+        } else {
+          parsedParameters = paramsObj;
+        }
+      } catch (err) {
+        throw new Error('Invalid parameters JSON format');
+      }
+
       const payload = {
         ...formData,
-        parameters: JSON.parse(formData.parameters || '{}'),
-        components: JSON.parse(formData.components || '[]')
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        parameters: parsedParameters
       };
-      if (template) {
-        await axios.put(`${API_URL}/prompts/templates/${template.id}`, payload);
+
+      let response;
+      if (template?._id) {
+        // Update existing template (creates new version)
+        response = await axios.put(`${API_URL}/prompts/templates/${template._id}`, payload);
+        onSuccess(response.data.template);
       } else {
-        await axios.post(`${API_URL}/prompts/templates`, payload);
+        // Create new template
+        response = await axios.post(`${API_URL}/prompts/templates`, payload);
+        onSuccess(response.data.template);
       }
-      onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred');
+      setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
@@ -49,69 +121,99 @@ export default function PromptTemplateForm({ open, onClose, template = null }) {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>{template ? 'Edit Prompt Template' : 'New Prompt Template'}</DialogTitle>
-      <DialogContent>
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-          <TextField
-            label="Name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            fullWidth
-          />
-          <TextField
-            label="Description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            fullWidth
-          />
-          <TextField
-            label="Content"
-            name="content"
-            value={formData.content}
-            onChange={handleChange}
-            multiline
-            rows={4}
-            fullWidth
-          />
-          <TextField
-            label="Parameters (JSON)"
-            name="parameters"
-            value={formData.parameters}
-            onChange={handleChange}
-            multiline
-            rows={2}
-            fullWidth
-          />
-          <TextField
-            label="Components (JSON)"
-            name="components"
-            value={formData.components}
-            onChange={handleChange}
-            multiline
-            rows={2}
-            fullWidth
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={formData.status === 'active'}
+      <DialogTitle>
+        {template ? 'Edit Template' : 'New Template'}
+      </DialogTitle>
+      <form onSubmit={handleSubmit}>
+        <DialogContent>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              name="name"
+              label="Name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              disabled={!!template} // Disable name field when editing
+              fullWidth
+            />
+
+            <TextField
+              name="description"
+              label="Description"
+              value={formData.description}
+              onChange={handleChange}
+              required
+              fullWidth
+              multiline
+              rows={2}
+            />
+
+            <FormControl fullWidth>
+              <InputLabel>Category</InputLabel>
+              <Select
+                name="category"
+                value={formData.category}
                 onChange={handleChange}
-                name="status"
-              />
-            }
-            label="Active"
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary" disabled={loading}>
-          {loading ? <CircularProgress size={24} /> : 'Save'}
-        </Button>
-      </DialogActions>
+                label="Category"
+              >
+                <MenuItem value="blueprint">Blueprint</MenuItem>
+                <MenuItem value="component_generation">Component Generation</MenuItem>
+                <MenuItem value="new_category">new category</MenuItem>
+                <MenuItem value="tech_support">Tech Support</MenuItem>
+                <MenuItem value="code_analysis">Code Analysis</MenuItem>
+                <MenuItem value="system">System</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              name="content"
+              label="Content"
+              value={formData.content}
+              onChange={handleChange}
+              required
+              fullWidth
+              multiline
+              rows={6}
+            />
+
+            <TextField
+              name="tags"
+              label="Tags (comma-separated)"
+              value={formData.tags}
+              onChange={handleChange}
+              fullWidth
+            />
+
+            <TextField
+              name="parameters"
+              label="Parameters"
+              value={formData.parameters}
+              onChange={handleChange}
+              fullWidth
+              multiline
+              rows={6}
+              helperText="Enter parameters as JSON array or object. Example: [{'name': 'param1', 'description': 'Parameter 1', 'required': true, 'type': 'string'}]"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={loading}
+          >
+            {loading ? 'Saving...' : template ? 'Save New Version' : 'Create'}
+          </Button>
+        </DialogActions>
+      </form>
     </Dialog>
   );
 } 
