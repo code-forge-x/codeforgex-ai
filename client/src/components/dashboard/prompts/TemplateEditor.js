@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { FaPlus, FaSearch, FaEye } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from 'react';
+import { FaPlus, FaSearch, FaEye, FaTimes, FaInfoCircle } from 'react-icons/fa';
 import axios from 'axios';
 import API_URL from '../../../api';
 import './TemplateEditor.css';
 
-const TemplateEditor = () => {
+const TemplateEditor = ({ template: initialTemplate, onSuccess, onClose }) => {
+  const isEditMode = !!(initialTemplate && initialTemplate._id);
   const [template, setTemplate] = useState({
     name: '',
     description: '',
     content: '',
+    category: 'component_generation',
     parameters: [],
     version: 1
   });
@@ -22,10 +24,23 @@ const TemplateEditor = () => {
   const [cursorPosition, setCursorPosition] = useState(0);
   const [previewContent, setPreviewContent] = useState('');
   const [validationErrors, setValidationErrors] = useState([]);
+  const [hoveredComponent, setHoveredComponent] = useState(null);
+  const editorRef = useRef(null);
 
   useEffect(() => {
     fetchComponents();
-  }, []);
+    // If editing, pre-fill fields
+    if (isEditMode) {
+      setTemplate({
+        name: initialTemplate.name || '',
+        description: initialTemplate.description || '',
+        content: initialTemplate.content || '',
+        category: initialTemplate.category || 'component_generation',
+        parameters: Array.isArray(initialTemplate.parameters) ? initialTemplate.parameters : [],
+        version: initialTemplate.version || 1
+      });
+    }
+  }, [initialTemplate]);
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
@@ -98,6 +113,37 @@ const TemplateEditor = () => {
     validateTemplate(newContent);
   };
 
+  const addParameter = () => {
+    setTemplate(prev => ({
+      ...prev,
+      parameters: [
+        ...prev.parameters,
+        {
+          name: '',
+          type: 'string',
+          required: false,
+          description: ''
+        }
+      ]
+    }));
+  };
+
+  const updateParameter = (index, field, value) => {
+    setTemplate(prev => ({
+      ...prev,
+      parameters: prev.parameters.map((param, i) => 
+        i === index ? { ...param, [field]: value } : param
+      )
+    }));
+  };
+
+  const removeParameter = (index) => {
+    setTemplate(prev => ({
+      ...prev,
+      parameters: prev.parameters.filter((_, i) => i !== index)
+    }));
+  };
+
   const generatePreview = async () => {
     try {
       setLoading(true);
@@ -119,22 +165,39 @@ const TemplateEditor = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const response = await axios.post(
-        `${API_URL}/prompts/templates`,
-        template,
-        getAuthHeaders()
-      );
-      setSuccess('Template created successfully');
-      // Reset form
-      setTemplate({
-        name: '',
-        description: '',
-        content: '',
-        parameters: [],
-        version: 1
-      });
+      let response;
+      if (isEditMode) {
+        // Update existing template (creates new version)
+        response = await axios.put(
+          `${API_URL}/prompts/templates/${initialTemplate._id}`,
+          template,
+          getAuthHeaders()
+        );
+      } else {
+        // Create new template
+        response = await axios.post(
+          `${API_URL}/prompts/templates`,
+          template,
+          getAuthHeaders()
+        );
+      }
+      setSuccess(isEditMode ? 'Template updated successfully' : 'Template created successfully');
+      // Reset form if creating
+      if (!isEditMode) {
+        setTemplate({
+          name: '',
+          description: '',
+          content: '',
+          category: 'component_generation',
+          parameters: [],
+          version: 1
+        });
+      }
+      // Redirect/close after success
+      if (typeof onSuccess === 'function') onSuccess();
+      if (typeof onClose === 'function') onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create template');
+      setError(err.response?.data?.message || 'Failed to save template');
     } finally {
       setLoading(false);
     }
@@ -144,14 +207,55 @@ const TemplateEditor = () => {
     component.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const renderContentWithHighlights = () => {
+    const content = template.content;
+    const parts = [];
+    let lastIndex = 0;
+    const componentRegex = /{{ include ([^}]+) }}/g;
+    let match;
+
+    while ((match = componentRegex.exec(content)) !== null) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        parts.push({
+          type: 'text',
+          content: content.substring(lastIndex, match.index)
+        });
+      }
+
+      // Add the component reference
+      const componentName = match[1].trim();
+      const component = components.find(c => c.name === componentName);
+      
+      parts.push({
+        type: 'component',
+        name: componentName,
+        exists: !!component,
+        component
+      });
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add any remaining text
+    if (lastIndex < content.length) {
+      parts.push({
+        type: 'text',
+        content: content.substring(lastIndex)
+      });
+    }
+
+    return parts;
+  };
+
   return (
     <div className="template-editor">
       <div className="editor-header">
-        <h1>Create New Template</h1>
+        <h1>{isEditMode ? 'Edit Template' : 'Create New Template'}</h1>
         <button 
           className="preview-button"
           onClick={generatePreview}
-          disabled={loading}
+          disabled={loading || !template.content.trim()}
         >
           <FaEye /> Preview Template
         </button>
@@ -188,6 +292,7 @@ const TemplateEditor = () => {
             onChange={handleInputChange}
             required
             placeholder="Enter template name"
+            disabled={isEditMode}
           />
         </div>
 
@@ -205,6 +310,81 @@ const TemplateEditor = () => {
         </div>
 
         <div className="form-group">
+          <label htmlFor="category">Category</label>
+          <select
+            id="category"
+            name="category"
+            value={template.category}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="blueprint">Blueprint</option>
+            <option value="component_generation">Component Generation</option>
+            <option value="new_cat">new cat</option>
+            <option value="tech_support">Tech Support</option>
+            <option value="code_analysis">Code Analysis</option>
+            <option value="system">System</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Parameters</label>
+          <div className="parameters-list">
+            {template.parameters.map((param, index) => (
+              <div key={index} className="parameter-item">
+                <div className="parameter-header">
+                  <input
+                    type="text"
+                    value={param.name}
+                    onChange={(e) => updateParameter(index, 'name', e.target.value)}
+                    placeholder="Parameter name"
+                    className="parameter-name"
+                  />
+                  <select
+                    value={param.type}
+                    onChange={(e) => updateParameter(index, 'type', e.target.value)}
+                    className="parameter-type"
+                  >
+                    <option value="string">String</option>
+                    <option value="number">Number</option>
+                    <option value="boolean">Boolean</option>
+                  </select>
+                  <label className="parameter-required">
+                    <input
+                      type="checkbox"
+                      checked={param.required}
+                      onChange={(e) => updateParameter(index, 'required', e.target.checked)}
+                    />
+                    Required
+                  </label>
+                  <button
+                    type="button"
+                    className="remove-parameter"
+                    onClick={() => removeParameter(index)}
+                  >
+                    <FaTimes />
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={param.description}
+                  onChange={(e) => updateParameter(index, 'description', e.target.value)}
+                  placeholder="Parameter description"
+                  className="parameter-description"
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              className="add-parameter-button"
+              onClick={addParameter}
+            >
+              <FaPlus /> Add Parameter
+            </button>
+          </div>
+        </div>
+
+        <div className="form-group">
           <label htmlFor="content">Template Content</label>
           <div className="content-editor">
             <div className="editor-toolbar">
@@ -215,6 +395,28 @@ const TemplateEditor = () => {
               >
                 <FaPlus /> Insert Component
               </button>
+              <div className="editor-help">
+                <FaInfoCircle />
+                <span>Use {'{{ include component_name }}'} to insert components</span>
+              </div>
+            </div>
+            <div className="content-preview">
+              {renderContentWithHighlights().map((part, index) => {
+                if (part.type === 'text') {
+                  return <span key={index}>{part.content}</span>;
+                } else {
+                  return (
+                    <span
+                      key={index}
+                      className={`component-reference ${part.exists ? 'valid' : 'invalid'}`}
+                      onMouseEnter={() => setHoveredComponent(part.component)}
+                      onMouseLeave={() => setHoveredComponent(null)}
+                    >
+                      {`{{ include ${part.name} }}`}
+                    </span>
+                  );
+                }
+              })}
             </div>
             <textarea
               id="content"
@@ -238,13 +440,21 @@ const TemplateEditor = () => {
           </div>
         </div>
 
+        {hoveredComponent && (
+          <div className="component-preview">
+            <h4>{hoveredComponent.name}</h4>
+            <p>{hoveredComponent.description}</p>
+            <pre>{hoveredComponent.content}</pre>
+          </div>
+        )}
+
         <div className="form-actions">
           <button 
             type="submit"
             className="save-button"
             disabled={loading}
           >
-            {loading ? 'Saving...' : 'Save Template'}
+            {loading ? (isEditMode ? 'Saving...' : 'Saving...') : (isEditMode ? 'Save Changes' : 'Save Template')}
           </button>
         </div>
       </form>

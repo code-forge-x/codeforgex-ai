@@ -164,6 +164,7 @@ export default function PromptTemplateForm({ open, onClose, template, onSuccess 
               >
                 <MenuItem value="blueprint">Blueprint</MenuItem>
                 <MenuItem value="component_generation">Component Generation</MenuItem>
+                <MenuItem value="new_category">new category</MenuItem>
                 <MenuItem value="tech_support">Tech Support</MenuItem>
                 <MenuItem value="code_analysis">Code Analysis</MenuItem>
                 <MenuItem value="system">System</MenuItem>
