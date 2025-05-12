@@ -6,6 +6,7 @@ import authRoutes from './routes/api/auth.js';
 import userRoutes from './routes/api/users.js';
 import chatRoutes from './routes/api/chat.js';
 import promptManagementRoutes from './routes/api/promptManagement.js';
+import componentRoutes from './routes/api/components.js';
 
 // Load environment variables
 dotenv.config();
@@ -27,6 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/prompts', promptManagementRoutes);
+app.use('/api/components', componentRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {

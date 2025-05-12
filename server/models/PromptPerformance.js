@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
 
 const PromptPerformanceSchema = new Schema({
   templateId: { type: Schema.Types.ObjectId, ref: 'PromptTemplate', required: true, index: true },
@@ -21,4 +21,5 @@ PromptPerformanceSchema.index({ templateName: 1, success: 1 });
 PromptPerformanceSchema.index({ createdAt: -1 });
 PromptPerformanceSchema.index({ templateName: 1, createdAt: -1 });
 
-module.exports = mongoose.model('PromptPerformance', PromptPerformanceSchema); 
+const PromptPerformance = mongoose.model('PromptPerformance', PromptPerformanceSchema);
+export default PromptPerformance; 
