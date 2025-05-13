@@ -19,6 +19,7 @@ export const getAllTemplates = async (req, res) => {
     if (category) query.category = category;
     if (search) {
       query.$or = [
+        { template_id: { $regex: search, $options: 'i' } },
         { name: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
         { tags: { $in: [new RegExp(search, 'i')] } }
@@ -31,18 +32,18 @@ export const getAllTemplates = async (req, res) => {
       .sort({ updatedAt: -1 })
       .exec();
 
-    // Group by name and find active versions
+    // Group by template_id and find active versions
     const templateMap = {};
     templates.forEach(template => {
-      if (!templateMap[template.name]) {
-        templateMap[template.name] = {
-          name: template.name,
+      if (!templateMap[template.template_id]) {
+        templateMap[template.template_id] = {
+          template_id: template.template_id,
           versions: []
         };
       }
-      templateMap[template.name].versions.push(template);
+      templateMap[template.template_id].versions.push(template);
       if (template.active) {
-        templateMap[template.name].activeVersion = template;
+        templateMap[template.template_id].activeVersion = template;
       }
     });
 
@@ -54,9 +55,9 @@ export const getAllTemplates = async (req, res) => {
 
     res.json({
       templates: paginatedTemplates,
-      totalPages: Math.ceil(templateList.length / limit),
-      currentPage: page,
-      totalTemplates: templateList.length
+      total: templateList.length,
+      page: parseInt(page),
+      totalPages: Math.ceil(templateList.length / limit)
     });
   } catch (error) {
     console.error('Get all templates error:', error);
@@ -87,10 +88,10 @@ export const getTemplateByName = async (req, res) => {
   }
 };
 
-// Get active template by name
-export const getActiveTemplateByName = async (req, res) => {
+// Get active template by template_id
+export const getActiveTemplateById = async (req, res) => {
   try {
-    const template = await PromptTemplate.findOne({ name: req.params.name, active: true });
+    const template = await PromptTemplate.findOne({ template_id: req.params.id, active: true });
     if (!template) return res.status(404).json({ message: 'Active template not found' });
     res.json(template);
   } catch (error) {
@@ -101,7 +102,7 @@ export const getActiveTemplateByName = async (req, res) => {
 // Create new template
 export const createTemplate = async (req, res) => {
   try {
-    const { name, description, category, content, tags, parameters, status } = req.body;
+    const { template_id, name, description, category, subcategory, content, tags, parameters } = req.body;
     
     if (!req.user || !req.user.email) {
       return res.status(401).json({ 
@@ -110,27 +111,26 @@ export const createTemplate = async (req, res) => {
       });
     }
 
-    // Check if a template with this name already exists
-    const existingTemplate = await PromptTemplate.findOne({ name });
+    // Check if template_id already exists
+    const existingTemplate = await PromptTemplate.findOne({ template_id });
     if (existingTemplate) {
-      return res.status(400).json({
-        success: false,
-        message: `A template with the name "${name}" already exists. Please use a different name.`
-      });
+      return res.status(400).json({ message: 'Template ID already exists' });
     }
-    
-    // Create template (version 1)
+
     const template = new PromptTemplate({
+      template_id,
       name,
       description,
       category,
+      subcategory,
       content,
-      tags: tags || [],
-      parameters: [], // Will be populated after creating parameters
+      tags,
+      parameters,
       version: 1,
-      active: true, // First version is automatically active
+      active: true,
       createdBy: req.user.email
     });
+
     await template.save();
 
     // Create parameters if provided
@@ -235,7 +235,11 @@ const validateVersionSequence = async (name, newVersion) => {
 // Update template (creates new version)
 export const updateTemplate = async (req, res) => {
   try {
-    const { description, category, content, tags, parameters, notes } = req.body;
+    const { name, description, category, subcategory, content, tags, parameters, notes } = req.body;
+    
+    // Log incoming data
+    console.log('Received update data:', req.body);
+    
     const originalTemplate = await PromptTemplate.findById(req.params.id);
     
     if (!originalTemplate) {
@@ -258,13 +262,15 @@ export const updateTemplate = async (req, res) => {
       });
     }
 
-    // Create new version
+    // Create new version with updated values
     const newTemplate = new PromptTemplate({
-      name: originalTemplate.name,
-      description: description || originalTemplate.description,
-      category: category || originalTemplate.category,
-      content: content || originalTemplate.content,
-      tags: tags || originalTemplate.tags,
+      template_id: originalTemplate.template_id,
+      name,
+      description,
+      category,
+      subcategory,
+      content,
+      tags: Array.isArray(tags) ? tags : [],
       parameters: [],
       version: newVersionNumber,
       active: false,
@@ -292,6 +298,18 @@ export const updateTemplate = async (req, res) => {
       newTemplate.parameters = savedParameters.map(p => p._id);
     }
 
+    // Log the template before saving
+    console.log('Saving new template version:', newTemplate);
+
+    await newTemplate.save();
+
+    // Deactivate all previous versions
+    await PromptTemplate.updateMany(
+      { template_id: originalTemplate.template_id, _id: { $ne: newTemplate._id } },
+      { $set: { active: false } }
+    );
+    // Activate the new version
+    newTemplate.active = true;
     await newTemplate.save();
 
     // Create version log
@@ -306,6 +324,9 @@ export const updateTemplate = async (req, res) => {
     });
 
     await newTemplate.populate('parameters');
+    
+    // Log the saved template
+    console.log('Saved template:', newTemplate);
     
     res.status(201).json({
       success: true,
@@ -1150,7 +1171,7 @@ export default {
   getAllTemplates,
   getTemplateById,
   getTemplateByName,
-  getActiveTemplateByName,
+  getActiveTemplateById,
   createTemplate,
   updateTemplate,
   activateTemplate,

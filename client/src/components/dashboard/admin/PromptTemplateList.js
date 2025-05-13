@@ -20,9 +20,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  DialogContentText,
-  Dialog as MuiDialog
+  DialogActions
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
@@ -48,7 +46,8 @@ export default function PromptTemplateList() {
       setLoading(true);
       setError(null);
       const response = await axios.get(`${API_URL}/prompts/templates?search=${search}`);
-      setTemplates(response.data.templates || []);
+      const templatesData = response.data.templates || response.data || [];
+      setTemplates(templatesData);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch templates');
     } finally {
@@ -57,24 +56,31 @@ export default function PromptTemplateList() {
   };
 
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      fetchTemplates();
-    }, 300);
-
-    return () => clearTimeout(debounceTimer);
+    fetchTemplates();
   }, [search]);
 
   const handleSearch = (event) => {
     setSearch(event.target.value);
   };
 
-  const handleEdit = (template) => {
-    const templateToEdit = template.activeVersion || template;
-    if (!templateToEdit) {
-      setError('Template data is invalid');
+  const handleEdit = async (template) => {
+    const id = template._id || (template.activeVersion && template.activeVersion._id);
+    if (!id) {
+      setError('Template ID not found.');
       return;
     }
-    setEditingTemplate(templateToEdit);
+    // Always ensure template_id is present at the top level
+    let t;
+    if (template.activeVersion) {
+      t = { ...template.activeVersion, template_id: template.template_id };
+    } else {
+      t = { ...template };
+    }
+    // Fallback: if template_id is still missing, try to get it from parent
+    if (!t.template_id && template.template_id) {
+      t.template_id = template.template_id;
+    }
+    setEditingTemplate(t);
     setShowEditor(true);
   };
 
@@ -121,6 +127,11 @@ export default function PromptTemplateList() {
     setSelectedTemplate(null);
   };
 
+  const handleNewTemplate = () => {
+    setEditingTemplate(null);
+    setShowEditor(true);
+  };
+
   if (selectedTemplate) {
     return (
       <TemplateDetails
@@ -138,7 +149,7 @@ export default function PromptTemplateList() {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => setShowEditor(true)}
+          onClick={handleNewTemplate}
         >
           New Template
         </Button>
@@ -179,6 +190,7 @@ export default function PromptTemplateList() {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell>Template ID</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell>Description</TableCell>
                 <TableCell>Category</TableCell>
@@ -188,82 +200,69 @@ export default function PromptTemplateList() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {templates.map((template) => (
-                <TableRow key={template.name}>
-                  <TableCell>{template.name}</TableCell>
-                  <TableCell>{template.activeVersion?.description || template.description}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={template.activeVersion?.category || template.category}
-                      size="small"
-                      color="primary"
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={`v${template.activeVersion?.version || 'N/A'}`}
-                      color="default"
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={template.activeVersion?.active ? 'Active' : 'Inactive'}
-                      color={template.activeVersion?.active ? 'success' : 'default'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Tooltip title="View Versions">
-                      <IconButton
-                        onClick={() => handleViewVersions(template)}
+              {templates.map((template) => {
+                const t = template.activeVersion || {};
+                return (
+                  <TableRow key={t._id || template.template_id}>
+                    <TableCell>{template.template_id || 'N/A'}</TableCell>
+                    <TableCell>{t.name || 'N/A'}</TableCell>
+                    <TableCell>{t.description || 'N/A'}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={t.category || 'N/A'}
                         size="small"
-                      >
-                        <HistoryIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Edit">
-                      <IconButton
-                        onClick={() => handleEdit(template)}
+                        color="primary"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={`v${t.version || 'N/A'}`}
+                        color="default"
                         size="small"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete">
-                      <IconButton
-                        onClick={() => handleDelete(template)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={t.active ? 'Active' : 'Inactive'}
+                        color={t.active ? 'success' : 'default'}
                         size="small"
-                        color="error"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title="View Versions">
+                        <IconButton
+                          onClick={() => handleViewVersions(template)}
+                          size="small"
+                        >
+                          <HistoryIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Edit">
+                        <IconButton
+                          onClick={() => handleEdit(template)}
+                          size="small"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton
+                          onClick={() => handleDelete(template)}
+                          size="small"
+                          color="error"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>
       )}
-
-      {/* Fullscreen Dialog for TemplateEditor */}
-      <Dialog open={showEditor} onClose={handleEditorClose} fullScreen>
-        <DialogTitle>
-          {editingTemplate ? 'Edit Template' : 'Create New Template'}
-          <Button onClick={handleEditorClose} sx={{ position: 'absolute', right: 16, top: 16 }}>
-            Close
-          </Button>
-        </DialogTitle>
-        <DialogContent>
-          <TemplateEditor
-            template={editingTemplate}
-            onSuccess={handleEditorSuccess}
-            onClose={handleEditorClose}
-          />
-        </DialogContent>
-      </Dialog>
 
       <Dialog
         open={deleteDialog.open}
@@ -290,6 +289,28 @@ export default function PromptTemplateList() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog 
+        open={showEditor} 
+        onClose={handleEditorClose} 
+        fullScreen
+        maxWidth="lg"
+      >
+        <DialogTitle>
+          {editingTemplate ? 'Edit Template' : 'Create New Template'}
+          <Button onClick={handleEditorClose} sx={{ position: 'absolute', right: 16, top: 16 }}>
+            Close
+          </Button>
+        </DialogTitle>
+        <DialogContent>
+          <TemplateEditor
+            key={editingTemplate?._id || 'new'}
+            template={editingTemplate}
+            onSuccess={handleEditorSuccess}
+            onClose={handleEditorClose}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
-} 
+}

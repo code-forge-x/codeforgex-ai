@@ -2,9 +2,15 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const PromptTemplateSchema = new Schema({
-  name: { 
-    type: String, 
-    required: true, 
+  template_id: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+  name: {
+    type: String,
+    required: true,
     trim: true
   },
   description: { type: String, required: true },
@@ -12,6 +18,10 @@ const PromptTemplateSchema = new Schema({
     type: String,
     enum: ['blueprint', 'component_generation', 'tech_support', 'code_analysis', 'system'],
     default: 'component_generation'
+  },
+  subcategory: {
+    type: String,
+    default: ''
   },
   status: {
     type: String,
@@ -43,11 +53,11 @@ PromptTemplateSchema.index({ status: 1 });
 PromptTemplateSchema.index({ active: 1 });
 PromptTemplateSchema.index({ tags: 1 });
 PromptTemplateSchema.index({ createdAt: 1 });
-// Compound unique index for name and version
-PromptTemplateSchema.index({ name: 1, version: 1 }, { unique: true });
+// Compound unique index for template_id and version
+PromptTemplateSchema.index({ template_id: 1, version: 1 }, { unique: true });
 
-PromptTemplateSchema.statics.findActive = function(name) {
-  return this.findOne({ name, active: true });
+PromptTemplateSchema.statics.findActive = function(template_id) {
+  return this.findOne({ template_id, active: true });
 };
 
 PromptTemplateSchema.pre('save', function(next) {

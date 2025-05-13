@@ -17,7 +17,7 @@ router.use(auth, admin);
 router.get('/templates', authenticateToken, promptTemplateController.getAllTemplates);
 router.get('/templates/:id', authenticateToken, promptTemplateController.getTemplateById);
 router.get('/templates/name/:name', authenticateToken, promptTemplateController.getTemplateByName);
-router.get('/templates/name/:name/active', authenticateToken, promptTemplateController.getActiveTemplateByName);
+router.get('/templates/:id/active', authenticateToken, promptTemplateController.getActiveTemplateById);
 router.post('/templates', authenticateToken, promptTemplateController.createTemplate);
 router.put('/templates/:id', authenticateToken, promptTemplateController.updateTemplate);
 router.post('/templates/:id/activate', authenticateToken, promptTemplateController.activateTemplate);
@@ -36,17 +36,17 @@ router.post('/templates/preview', authenticateToken, promptTemplateController.ge
 // Component routes
 router.get('/components', authenticateToken, promptComponentController.getAllComponents);
 router.get('/components/:id', authenticateToken, promptComponentController.getComponentById);
-router.get('/components/name/:name', promptComponentController.getComponentByName);
-router.get('/components/name/:name/active', promptComponentController.getActiveComponentByName);
+router.get('/components/name/:name', authenticateToken, promptComponentController.getComponentByName);
+router.get('/components/name/:name/active', authenticateToken, promptComponentController.getActiveComponentByName);
 router.post('/components', authenticateToken, promptComponentController.createComponent);
 router.put('/components/:id', authenticateToken, promptComponentController.updateComponent);
-router.post('/components/:id/activate', promptComponentController.activateComponent);
-router.get('/components/:id/usage', promptComponentController.getComponentUsage);
+router.post('/components/:id/activate', authenticateToken, promptComponentController.activateComponent);
+router.get('/components/:id/usage', authenticateToken, promptComponentController.getComponentUsage);
 router.delete('/components/:id', authenticateToken, promptComponentController.deleteComponent);
 
 // Performance routes
-router.get('/performance', promptPerformanceController.getPerformanceMetrics);
-router.get('/performance/templates', promptPerformanceController.getPerformanceByTemplate);
-router.get('/performance/timeline', promptPerformanceController.getPerformanceTimeline);
+router.get('/performance', authenticateToken, promptPerformanceController.getPerformanceMetrics);
+router.get('/performance/templates', authenticateToken, promptPerformanceController.getPerformanceByTemplate);
+router.get('/performance/timeline', authenticateToken, promptPerformanceController.getPerformanceTimeline);
 
 export default router;
