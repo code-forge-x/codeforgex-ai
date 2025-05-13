@@ -14,14 +14,19 @@ router.post('/', authenticate, async (req, res) => {
   // Log user info for debugging
   console.log('Authenticated user:', req.user);
 
-  // Build Claude API request body using user role and message
+  // Determine Claude role: only 'user' or 'assistant' allowed
+  let claudeRole = 'user';
+  // If you want to allow sending as 'assistant' (for future), you can add logic here
+  // For now, always use 'user' for both user and admin
+
+  // Build Claude API request body
   const claudeBody = {
     model: 'claude-3-7-sonnet-20250219',
-    max_tokens: 1024,
+    max_tokens: 4000,
     stream: true,
     messages: [
       {
-        role: req.user?.role || 'user',
+        role: claudeRole,
         content: message
       }
     ]
@@ -47,37 +52,30 @@ router.post('/', authenticate, async (req, res) => {
       return res.status(response.status).json({ error: errorText || 'Failed to call Claude API' });
     }
 
-    // Set headers for streaming
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
+    // Collect the full response instead of streaming
+    let fullResponse = '';
     response.body.on('data', (chunk) => {
       const lines = chunk.toString().split('\n');
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           const data = line.slice(6);
-          if (data === '[DONE]') {
-            res.write('data: [DONE]\n\n');
-            return res.end();
-          }
+          if (data === '[DONE]') return;
           try {
             const parsed = JSON.parse(data);
             if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
-              res.write(`data: ${JSON.stringify({ content: parsed.delta.text })}\n\n`);
+              fullResponse += parsed.delta.text;
             }
-          } catch (e) {
-            console.error('Error parsing JSON:', e);
-          }
+          } catch (e) {}
         }
       }
     });
     response.body.on('end', () => {
-      res.end();
+      // Send a single JSON response
+      res.json({ content: fullResponse });
     });
     response.body.on('error', (err) => {
       console.error('Stream error:', err);
-      res.end();
+      res.status(500).json({ error: 'Stream error' });
     });
   } catch (error) {
     console.error('Error calling Claude API:', error);
