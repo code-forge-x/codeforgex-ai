@@ -22,7 +22,7 @@ router.post('/', authenticate, async (req, res) => {
   // Build Claude API request body
   const claudeBody = {
     model: 'claude-3-7-sonnet-20250219',
-    max_tokens: 4000,
+    max_tokens: 8000,
     stream: true,
     messages: [
       {
