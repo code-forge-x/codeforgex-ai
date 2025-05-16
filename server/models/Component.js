@@ -1,12 +1,47 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
+// Parameter sub-schema
+const ParameterSchema = new Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  type: {
+    type: String,
+    enum: ['string', 'number', 'boolean', 'array', 'object'],
+    default: 'string'
+  },
+  description: {
+    type: String,
+    default: ''
+  },
+  default: Schema.Types.Mixed,
+  options: {
+    type: [Schema.Types.Mixed],
+    default: []
+  },
+  required: {
+    type: Boolean,
+    default: false
+  },
+  semantic_type: {
+    type: String,
+    default: ''
+  },
+  validation: {
+    type: Schema.Types.Mixed,
+    default: undefined
+  }
+});
+
 const ComponentSchema = new Schema({
   name: {
     type: String,
-    required: true,
-    trim: true,
-    unique: true
+    trim: true
+  },
+  title: {
+    type: String
   },
   description: {
     type: String,
@@ -16,11 +51,6 @@ const ComponentSchema = new Schema({
     type: String,
     required: true
   },
-  category: {
-    type: String,
-    enum: ['error_handling', 'risk_management', 'introduction', 'conclusion', 'validation', 'other'],
-    default: 'other'
-  },
   tags: {
     type: [String],
     default: []
@@ -29,6 +59,9 @@ const ComponentSchema = new Schema({
     type: Number,
     required: true,
     default: 1
+  },
+  component_version: {
+    type: String
   },
   active: {
     type: Boolean,
@@ -50,6 +83,30 @@ const ComponentSchema = new Schema({
     type: Map,
     of: Schema.Types.Mixed,
     default: new Map()
+  },
+  type: {
+    type: String,
+    default: 'generic_template',
+  },
+  parameters: {
+    type: [ParameterSchema],
+    default: []
+  },
+  dependent_components: {
+    type: [String],
+    default: []
+  },
+  required_by: {
+    type: [String],
+    default: []
+  },
+  default: {
+    type: [String],
+    default: []
+  },
+  tested_versions: {
+    type: [String],
+    default: []
   }
 }, {
   timestamps: true

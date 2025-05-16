@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaFilter } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaFilter, FaFileImport } from 'react-icons/fa';
 import API_URL from '../../../api';
 import './ComponentList.css';
 import axios from 'axios';
@@ -289,9 +289,14 @@ const ComponentList = () => {
     <div className="component-list-container">
       <div className="component-header">
         <h1>Prompt Components</h1>
-        <button className="create-button" onClick={handleCreate}>
-          <FaPlus /> Create Component
-        </button>
+        <div className="header-buttons">
+          <button className="import-button" onClick={() => navigate('/import-utility')}>
+            <FaFileImport /> Import Component
+          </button>
+          <button className="create-button" onClick={handleCreate}>
+            <FaPlus /> Create Component
+          </button>
+        </div>
       </div>
 
       {success && (
