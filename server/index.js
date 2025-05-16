@@ -7,6 +7,7 @@ import userRoutes from './routes/api/users.js';
 import chatRoutes from './routes/api/chat.js';
 import promptManagementRoutes from './routes/api/promptManagement.js';
 import componentRoutes from './routes/api/components.js';
+import templateImportRoutes from './routes/api/templateImport.js';
 
 // Load environment variables
 dotenv.config();
@@ -29,6 +30,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/prompts', promptManagementRoutes);
 app.use('/api/components', componentRoutes);
+app.use('/api/template-import', templateImportRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
