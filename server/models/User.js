@@ -19,6 +19,12 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'user', 'developer', 'support'],
     default: 'user'
   },
+
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active'
+  },
   name: {
     type: String,
     required: true,
@@ -37,6 +43,7 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
   updated_at: {
+
     type: Date,
     default: Date.now
   }
