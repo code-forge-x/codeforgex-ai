@@ -1,15 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaFilter } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaFilter, FaFileImport } from 'react-icons/fa';
 import API_URL from '../../../api';
-import './ComponentList.css';
 import axios from 'axios';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import { useNotification } from '../../../context/NotificationContext';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import InputAdornment from '@mui/material/InputAdornment';
+import SearchIcon from '@mui/icons-material/Search';
+import Chip from '@mui/material/Chip';
+import Tooltip from '@mui/material/Tooltip';
+import StarIcon from '@mui/icons-material/Star';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import IconButton from '@mui/material/IconButton';
+import Rating from '@mui/material/Rating';
+import FeedbackIcon from '@mui/icons-material/Feedback';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
 
 const ComponentList = () => {
+  const { notify } = useNotification();
   const [components, setComponents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -35,6 +62,14 @@ const ComponentList = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
+  const [previewComponent, setPreviewComponent] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+  const [feedbackComponent, setFeedbackComponent] = useState(null);
+  const [feedbackValue, setFeedbackValue] = useState(0);
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [feedbackHistoryOpen, setFeedbackHistoryOpen] = useState(false);
+  const [feedbackHistory, setFeedbackHistory] = useState([]);
   const navigate = useNavigate();
 
   const categories = [
@@ -62,7 +97,7 @@ const ComponentList = () => {
   const fetchComponents = async () => {
     try {
       setLoading(true);
-      let url = `${API_URL}/prompts/components?page=${currentPage}&limit=${itemsPerPage}`;
+      let url = `${API_URL}/api/prompts/components?page=${currentPage}&limit=${itemsPerPage}`;
       if (searchTerm) url += `&search=${searchTerm}`;
       if (selectedCategory) url += `&category=${selectedCategory}`;
       
@@ -71,8 +106,7 @@ const ComponentList = () => {
       setComponents(componentsData);
       setTotalPages(Array.isArray(response.data) ? 1 : response.data.totalPages || 1);
     } catch (err) {
-      console.error('Fetch error:', err);
-      setError(err.response?.data?.message || 'Failed to fetch components');
+      notify(err.response?.data?.message || 'Failed to fetch components', 'error');
     } finally {
       setLoading(false);
     }
@@ -87,21 +121,20 @@ const ComponentList = () => {
     try {
       setLoading(true);
       const response = await axios.delete(
-        `${API_URL}/prompts/components/${selectedComponent._id}`,
+        `${API_URL}/api/prompts/components/${selectedComponent._id}`,
         getAuthHeaders()
       );
       
       if (response.data.success) {
         setShowDeleteModal(false);
         setSelectedComponent(null);
-        setSuccess('Component deleted successfully');
+        notify('Component deleted successfully', 'success');
         await fetchComponents();
       } else {
-        setError(response.data.message || 'Failed to delete component');
+        notify(response.data.message || 'Failed to delete component', 'error');
       }
     } catch (err) {
-      console.error('Delete error:', err);
-      setError(err.response?.data?.message || 'Failed to delete component');
+      notify(err.response?.data?.message || 'Failed to delete component', 'error');
     } finally {
       setLoading(false);
     }
@@ -125,7 +158,7 @@ const ComponentList = () => {
     try {
       setLoading(true);
       const response = await axios.put(
-        `${API_URL}/prompts/components/${selectedComponent._id}`,
+        `${API_URL}/api/prompts/components/${selectedComponent._id}`,
         {
           name: editingComponent.name,
           description: editingComponent.description,
@@ -139,14 +172,13 @@ const ComponentList = () => {
       if (response.data.success) {
         setShowEditModal(false);
         setSelectedComponent(null);
-        setSuccess('Component updated successfully');
+        notify('Component updated successfully', 'success');
         await fetchComponents();
       } else {
-        setError(response.data.message || 'Failed to update component');
+        notify(response.data.message || 'Failed to update component', 'error');
       }
     } catch (err) {
-      console.error('Update error:', err);
-      setError(err.response?.data?.message || 'Failed to update component');
+      notify(err.response?.data?.message || 'Failed to update component', 'error');
     } finally {
       setLoading(false);
     }
@@ -169,19 +201,18 @@ const ComponentList = () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        `${API_URL}/prompts/components`,
+        `${API_URL}/api/prompts/components`,
         newComponent,
         getAuthHeaders()
       );
       
       if (response.data) {
         setShowCreateModal(false);
-        setSuccess('Component created successfully');
+        notify('Component created successfully', 'success');
         await fetchComponents();
       }
     } catch (err) {
-      console.error('Create error:', err);
-      setError(err.response?.data?.message || 'Failed to create component');
+      notify(err.response?.data?.message || 'Failed to create component', 'error');
     } finally {
       setLoading(false);
     }
@@ -285,361 +316,356 @@ const ComponentList = () => {
     }));
   };
 
+  // Mocked feedback endpoints for demonstration
+  const fetchFeedbackHistory = async (componentId) => {
+    // Replace with real API call
+    setFeedbackHistory([
+      { user: 'Alice', rating: 5, comment: 'Great component!', date: '2024-06-01' },
+      { user: 'Bob', rating: 4, comment: 'Works well, but could use more docs.', date: '2024-06-02' },
+    ]);
+  };
+  const submitFeedback = async (componentId, rating, comment) => {
+    // Replace with real API call
+    notify('Feedback submitted. Thank you!', 'success');
+  };
+
   return (
-    <div className="component-list-container">
-      <div className="component-header">
-        <h1>Prompt Components</h1>
-        <button className="create-button" onClick={handleCreate}>
-          <FaPlus /> Create Component
-        </button>
-      </div>
-
-      {success && (
-        <div className="alert alert-success">
-          <div className="alert-content">
-            <span className="alert-icon">✓</span>
-            <span className="alert-message">{success}</span>
-          </div>
-          <button className="alert-close" onClick={() => setSuccess(null)}>×</button>
-        </div>
-      )}
-
-      {error && (
-        <div className="alert alert-error">
-          <div className="alert-content">
-            <span className="alert-icon">!</span>
-            <span className="alert-message">{error}</span>
-          </div>
-          <button className="alert-close" onClick={() => setError(null)}>×</button>
-        </div>
-      )}
-
-      <div className="search-filter-container">
-        <div className="search-box">
-          <FaSearch className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search components..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <div className="filter-box">
-          <FaFilter className="filter-icon" />
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option value="">All Categories</option>
-            {categories.map(category => (
-              <option key={category} value={category}>
-                {category.split('_').map(word => 
-                  word.charAt(0).toUpperCase() + word.slice(1)
-                ).join(' ')}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="loading">Loading components...</div>
-      ) : components.length === 0 ? (
-        <div className="no-components">No components found</div>
-      ) : (
-        <div className="components-grid">
-          {components.map(component => (
-            <div key={component._id} className="component-card">
-              <div className="component-card-header">
-                <h3>{component.name}</h3>
-                <div className="component-actions">
-                  <button 
-                    className="edit-button"
-                    onClick={() => handleEdit(component)}
-                  >
-                    <FaEdit />
-                  </button>
-                  <button 
-                    className="delete-button"
-                    onClick={() => handleDelete(component)}
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
-              </div>
-              <p className="component-description">{component.description}</p>
-              <div className="component-tags">
-                {component.tags && component.tags.map(tag => (
-                  <span key={tag} className="tag">{tag}</span>
-                ))}
-              </div>
-              <div className="component-footer">
-                <span className="category">{component.category}</span>
-                <span className="usage">Used {component.usageCount || 0} times</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {showDeleteModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h3>Delete Component</h3>
-              <button className="close-button" onClick={() => closeModal('delete')}>×</button>
-            </div>
-            <p>Are you sure you want to delete "{selectedComponent.name}"?</p>
-            <div className="modal-actions">
-              <button 
-                className="cancel-button"
-                onClick={() => closeModal('delete')}
-              >
-                Cancel
-              </button>
-              <button 
-                className="delete-button"
-                onClick={confirmDelete}
-                disabled={loading}
-              >
-                {loading ? 'Deleting...' : 'Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showCreateModal && (
-        <div className="modal-overlay">
-          <div className="modal create-modal">
-            <div className="modal-header">
-              <h3>Create New Component</h3>
-              <button className="close-button" onClick={() => closeModal('create')}>×</button>
-            </div>
-            <form onSubmit={handleCreateSubmit}>
-              <div className="form-group">
-                <label htmlFor="name">Name</label>
-                <input
-                  type="text"
-                  id="name"
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Paper sx={{ p: 4, minHeight: 300 }}>
+            <Typography variant="h5" sx={{ mb: 2 }}>
+              Component Library
+            </Typography>
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  placeholder="Search components..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Category"
+                  value={selectedCategory}
+                  onChange={e => setSelectedCategory(e.target.value)}
+                  SelectProps={{ native: true }}
+                >
+                  <option value="">All Categories</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>
+                      {category.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                    </option>
+                  ))}
+                </TextField>
+              </Grid>
+            </Grid>
+            <TableContainer component={Paper} sx={{ mb: 2 }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Category</TableCell>
+                    <TableCell>Tags</TableCell>
+                    <TableCell>Usage</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center">Loading...</TableCell>
+                    </TableRow>
+                  ) : components.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center">No components found</TableCell>
+                    </TableRow>
+                  ) : (
+                    components.map(component => (
+                      <TableRow key={component._id} hover>
+                        <TableCell>
+                          <Tooltip title="Preview">
+                            <Button onClick={() => { setPreviewComponent(component); setShowPreview(true); }} size="small">
+                              {component.name}
+                            </Button>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell>{component.description}</TableCell>
+                        <TableCell>
+                          <Chip label={component.category} size="small" color="primary" variant="outlined" />
+                        </TableCell>
+                        <TableCell>
+                          {component.tags && component.tags.map(tag => (
+                            <Chip key={tag} label={tag} size="small" sx={{ mr: 0.5 }} />
+                          ))}
+                        </TableCell>
+                        <TableCell>
+                          <Tooltip title="Usage count">
+                            <Chip icon={<StarIcon fontSize="small" />} label={component.usageCount || 0} size="small" color="secondary" />
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell>
+                          <Tooltip title="Add to Project">
+                            <IconButton color="primary" size="small">
+                              <AddCircleOutlineIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Rate Component">
+                            <IconButton color="secondary" size="small" onClick={() => { setFeedbackComponent(component); setFeedbackDialogOpen(true); }}>
+                              <StarIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Feedback History">
+                            <IconButton color="info" size="small" onClick={async () => { await fetchFeedbackHistory(component._id); setFeedbackHistoryOpen(true); }}>
+                              <FeedbackIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            {/* Preview Modal */}
+            <Dialog open={showPreview} onClose={() => setShowPreview(false)} maxWidth="md" fullWidth>
+              <DialogTitle>Component Preview: {previewComponent?.name}</DialogTitle>
+              <DialogContent>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>{previewComponent?.description}</Typography>
+                <Typography variant="body2" sx={{ mb: 2 }} color="text.secondary">Category: {previewComponent?.category}</Typography>
+                <Typography variant="body2" sx={{ mb: 2 }} color="text.secondary">Tags: {previewComponent?.tags?.join(', ')}</Typography>
+                <Paper sx={{ p: 2, bgcolor: '#232323', color: '#fff', fontFamily: 'monospace', whiteSpace: 'pre-wrap', mb: 2 }}>
+                  {previewComponent?.content}
+                </Paper>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setShowPreview(false)}>Close</Button>
+              </DialogActions>
+            </Dialog>
+            {/* Create Modal */}
+            <Dialog open={showCreateModal} onClose={() => closeModal('create')} maxWidth="sm" fullWidth>
+              <DialogTitle>Create New Component</DialogTitle>
+              <DialogContent>
+                <TextField
+                  margin="normal"
+                  label="Name"
                   name="name"
+                  fullWidth
                   value={newComponent.name}
                   onChange={handleNewComponentChange}
                   required
-                  placeholder="Enter component name"
                 />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="description">Description</label>
-                <textarea
-                  id="description"
+                <TextField
+                  margin="normal"
+                  label="Description"
                   name="description"
+                  fullWidth
+                  multiline
+                  minRows={2}
                   value={newComponent.description}
                   onChange={handleNewComponentChange}
                   required
-                  placeholder="Enter component description"
-                  rows="3"
                 />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="content">Content</label>
-                <textarea
-                  id="content"
+                <TextField
+                  margin="normal"
+                  label="Content"
                   name="content"
+                  fullWidth
+                  multiline
+                  minRows={6}
                   value={newComponent.content}
                   onChange={handleNewComponentChange}
                   required
-                  placeholder="Enter component content"
-                  rows="10"
                 />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="category">Category</label>
-                <select
-                  id="category"
+                <TextField
+                  margin="normal"
+                  label="Category"
                   name="category"
+                  fullWidth
+                  select
+                  SelectProps={{ native: true }}
                   value={newComponent.category}
                   onChange={handleNewComponentChange}
                   required
                 >
                   {categories.map(category => (
                     <option key={category} value={category}>
-                      {category.split('_').map(word => 
-                        word.charAt(0).toUpperCase() + word.slice(1)
-                      ).join(' ')}
+                      {category.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                     </option>
                   ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="tags">Tags</label>
-                <div className="tags-input-container">
-                  <input
-                    type="text"
-                    id="tags"
-                    value={tagInput}
-                    onChange={handleTagInputChange}
-                    onKeyDown={handleTagInputKeyDown}
-                    placeholder="Add tags (press Enter)"
-                  />
-                  <div className="tags-list">
-                    {newComponent.tags.map(tag => (
-                      <span key={tag} className="tag">
-                        {tag}
-                        <button
-                          type="button"
-                          className="remove-tag"
-                          onClick={() => removeTag(tag)}
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="modal-actions">
-                <button 
-                  type="button"
-                  className="cancel-button"
-                  onClick={() => closeModal('create')}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="save-button"
-                  disabled={loading}
-                >
+                </TextField>
+                <TextField
+                  margin="normal"
+                  label="Tags (comma separated)"
+                  name="tags"
+                  fullWidth
+                  value={newComponent.tags.join(', ')}
+                  onChange={e => setNewComponent(prev => ({ ...prev, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) }))}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => closeModal('create')}>Cancel</Button>
+                <Button onClick={handleCreateSubmit} variant="contained" disabled={loading}>
                   {loading ? 'Creating...' : 'Create Component'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showEditModal && (
-        <div className="modal-overlay">
-          <div className="modal create-modal">
-            <div className="modal-header">
-              <h3>Edit Component</h3>
-              <button className="close-button" onClick={() => closeModal('edit')}>×</button>
-            </div>
-            <form onSubmit={handleEditSubmit}>
-              <div className="form-group">
-                <label htmlFor="edit-name">Name</label>
-                <input
-                  type="text"
-                  id="edit-name"
+                </Button>
+              </DialogActions>
+            </Dialog>
+            {/* Edit Modal */}
+            <Dialog open={showEditModal} onClose={() => closeModal('edit')} maxWidth="sm" fullWidth>
+              <DialogTitle>Edit Component</DialogTitle>
+              <DialogContent>
+                <TextField
+                  margin="normal"
+                  label="Name"
                   name="name"
+                  fullWidth
                   value={editingComponent.name}
                   onChange={handleEditChange}
                   required
-                  placeholder="Enter component name"
                 />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="edit-description">Description</label>
-                <textarea
-                  id="edit-description"
+                <TextField
+                  margin="normal"
+                  label="Description"
                   name="description"
+                  fullWidth
+                  multiline
+                  minRows={2}
                   value={editingComponent.description}
                   onChange={handleEditChange}
                   required
-                  placeholder="Enter component description"
-                  rows="3"
                 />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="edit-content">Content</label>
-                <textarea
-                  id="edit-content"
+                <TextField
+                  margin="normal"
+                  label="Content"
                   name="content"
+                  fullWidth
+                  multiline
+                  minRows={6}
                   value={editingComponent.content}
                   onChange={handleEditChange}
                   required
-                  placeholder="Enter component content"
-                  rows="10"
                 />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="edit-category">Category</label>
-                <select
-                  id="edit-category"
+                <TextField
+                  margin="normal"
+                  label="Category"
                   name="category"
+                  fullWidth
+                  select
+                  SelectProps={{ native: true }}
                   value={editingComponent.category}
                   onChange={handleEditChange}
                   required
                 >
                   {categories.map(category => (
                     <option key={category} value={category}>
-                      {category.split('_').map(word => 
-                        word.charAt(0).toUpperCase() + word.slice(1)
-                      ).join(' ')}
+                      {category.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                     </option>
                   ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="edit-tags">Tags</label>
-                <div className="tags-input-container">
-                  <input
-                    type="text"
-                    id="edit-tags"
-                    value={editTagInput}
-                    onChange={handleEditTagInputChange}
-                    onKeyDown={handleEditTagInputKeyDown}
-                    placeholder="Add tags (press Enter)"
-                  />
-                  <div className="tags-list">
-                    {editingComponent.tags.map(tag => (
-                      <span key={tag} className="tag">
-                        {tag}
-                        <button
-                          type="button"
-                          className="remove-tag"
-                          onClick={() => removeEditTag(tag)}
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="modal-actions">
-                <button 
-                  type="button"
-                  className="cancel-button"
-                  onClick={() => closeModal('edit')}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="save-button"
-                  disabled={loading}
-                >
+                </TextField>
+                <TextField
+                  margin="normal"
+                  label="Tags (comma separated)"
+                  name="tags"
+                  fullWidth
+                  value={editingComponent.tags.join(', ')}
+                  onChange={e => setEditingComponent(prev => ({ ...prev, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) }))}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => closeModal('edit')}>Cancel</Button>
+                <Button onClick={handleEditSubmit} variant="contained" disabled={loading}>
                   {loading ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+                </Button>
+              </DialogActions>
+            </Dialog>
+            {/* Delete Modal */}
+            <Dialog open={showDeleteModal} onClose={() => closeModal('delete')} maxWidth="xs" fullWidth>
+              <DialogTitle>Delete Component</DialogTitle>
+              <DialogContent>
+                <Typography>Are you sure you want to delete "{selectedComponent?.name}"?</Typography>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => closeModal('delete')}>Cancel</Button>
+                <Button onClick={confirmDelete} color="error" variant="contained" disabled={loading}>
+                  {loading ? 'Deleting...' : 'Delete'}
+                </Button>
+              </DialogActions>
+            </Dialog>
+            {/* Feedback Dialog */}
+            <Dialog open={feedbackDialogOpen} onClose={() => setFeedbackDialogOpen(false)} maxWidth="sm" fullWidth>
+              <DialogTitle>Rate & Feedback: {feedbackComponent?.name}</DialogTitle>
+              <DialogContent>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>{feedbackComponent?.description}</Typography>
+                <Rating
+                  name="component-feedback-rating"
+                  value={feedbackValue}
+                  onChange={(_, newValue) => setFeedbackValue(newValue)}
+                  sx={{ mb: 2 }}
+                />
+                <TextField
+                  label="Comment"
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  value={feedbackComment}
+                  onChange={e => setFeedbackComment(e.target.value)}
+                  sx={{ mb: 2 }}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setFeedbackDialogOpen(false)}>Cancel</Button>
+                <Button
+                  onClick={async () => {
+                    await submitFeedback(feedbackComponent._id, feedbackValue, feedbackComment);
+                    setFeedbackDialogOpen(false);
+                    setFeedbackValue(0);
+                    setFeedbackComment('');
+                  }}
+                  variant="contained"
+                  disabled={!feedbackValue}
+                >
+                  Submit
+                </Button>
+              </DialogActions>
+            </Dialog>
+            {/* Feedback History Dialog */}
+            <Dialog open={feedbackHistoryOpen} onClose={() => setFeedbackHistoryOpen(false)} maxWidth="sm" fullWidth>
+              <DialogTitle>Feedback History</DialogTitle>
+              <DialogContent>
+                <List>
+                  {feedbackHistory.length === 0 ? (
+                    <ListItem><ListItemText primary="No feedback yet." /></ListItem>
+                  ) : feedbackHistory.map((fb, idx) => (
+                    <ListItem key={idx} alignItems="flex-start">
+                      <ListItemText
+                        primary={<><Rating value={fb.rating} readOnly size="small" /> {fb.user} ({fb.date})</>}
+                        secondary={fb.comment}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setFeedbackHistoryOpen(false)}>Close</Button>
+              </DialogActions>
+            </Dialog>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
 
