@@ -24,7 +24,7 @@ export default function PromptComponentList({ templateId }) {
     const fetchComponents = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_URL}/prompts/components/${templateId}`);
+        const response = await axios.get(`${API_URL}/api/prompts/components/${templateId}`);
         setComponents(response.data.components || []);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch components');
@@ -56,7 +56,7 @@ export default function PromptComponentList({ templateId }) {
   const handleDeleteConfirm = async () => {
     if (window.confirm('Are you sure you want to delete this component?')) {
       try {
-        await axios.delete(`${API_URL}/prompts/components/${componentToDelete._id}`);
+        await axios.delete(`${API_URL}/api/prompts/components/${componentToDelete._id}`);
         setComponents(components.filter(c => c._id !== componentToDelete._id));
         setDeleteDialogOpen(false);
         setComponentToDelete(null);

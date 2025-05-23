@@ -1,13 +1,13 @@
 import express from 'express';
 import User from '../../models/User.js';
-import { authenticate, authorize } from '../../middleware/auth.js';
+import { authenticateToken, requireRole } from '../../middleware/auth.js';
 
 const router = express.Router();
 
 // @route   GET /api/users
 // @desc    Get all users (admin only), with pagination, search, and status filter
 // @access  Private/Admin
-router.get('/', authenticate, authorize('admin'), async (req, res) => {
+router.get('/', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const { page = 1, limit = 10, search = '', status, role, sort = '-createdAt' } = req.query;
     const query = {};

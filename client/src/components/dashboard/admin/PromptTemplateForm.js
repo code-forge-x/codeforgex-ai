@@ -19,6 +19,7 @@ import API_URL from '../../../api';
 
 export default function PromptTemplateForm({ open, onClose, template, onSuccess }) {
   const [formData, setFormData] = useState({
+    template_id: '',
     name: '',
     description: '',
     category: 'component_generation',
@@ -31,8 +32,9 @@ export default function PromptTemplateForm({ open, onClose, template, onSuccess 
 
   useEffect(() => {
     if (template) {
-      // For editing, we don't allow changing the name
+      // For editing, we don't allow changing the template_id
       setFormData({
+        template_id: template.template_id || '',
         name: template.name || '',
         description: template.description || '',
         category: template.category || 'component_generation',
@@ -55,6 +57,7 @@ export default function PromptTemplateForm({ open, onClose, template, onSuccess 
     } else {
       // For new template
       setFormData({
+        template_id: '',
         name: '',
         description: '',
         category: 'component_generation',
@@ -79,11 +82,15 @@ export default function PromptTemplateForm({ open, onClose, template, onSuccess 
     setLoading(true);
 
     try {
+      // Validate template_id format
+      if (!/^[a-zA-Z0-9_]+$/.test(formData.template_id)) {
+        throw new Error('Template ID must contain only letters, numbers, and underscores');
+      }
+
       // Parse parameters from JSON string
       let parsedParameters = [];
       try {
         const paramsObj = JSON.parse(formData.parameters);
-        // Convert object to array if needed
         if (typeof paramsObj === 'object' && !Array.isArray(paramsObj)) {
           parsedParameters = Object.entries(paramsObj).map(([name, details]) => ({
             name,
@@ -105,11 +112,11 @@ export default function PromptTemplateForm({ open, onClose, template, onSuccess 
       let response;
       if (template?._id) {
         // Update existing template (creates new version)
-        response = await axios.put(`${API_URL}/prompts/templates/${template._id}`, payload);
+        response = await axios.put(`${API_URL}/api/prompts/templates/${template._id}`, payload);
         onSuccess(response.data.template);
       } else {
         // Create new template
-        response = await axios.post(`${API_URL}/prompts/templates`, payload);
+        response = await axios.post(`${API_URL}/api/prompts/templates`, payload);
         onSuccess(response.data.template);
       }
     } catch (err) {
@@ -122,8 +129,11 @@ export default function PromptTemplateForm({ open, onClose, template, onSuccess 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {template ? 'Edit Template' : 'New Template'}
+        {template ? 'Edit Template' : 'Create New Template'}
       </DialogTitle>
+      <Alert severity="warning" sx={{ mb: 2, fontWeight: 'bold', fontSize: 16 }}>
+        🚨 <b>REMINDER:</b> Phase-specific prompt templates are required for orchestration & phase transition logic. This is the top priority. See PROJECT_PROGRESS.md for details.
+      </Alert>
       <form onSubmit={handleSubmit}>
         <DialogContent>
           {error && (
@@ -134,15 +144,25 @@ export default function PromptTemplateForm({ open, onClose, template, onSuccess 
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
+              fullWidth
+              label="Template ID"
+              name="template_id"
+              value={formData.template_id}
+              onChange={handleChange}
+              required
+              disabled={!!template}
+              helperText="Unique identifier for the template (letters, numbers, and underscores only)"
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              label="Template Name"
               name="name"
-              label="Name"
               value={formData.name}
               onChange={handleChange}
               required
-              disabled={!!template} // Disable name field when editing
-              fullWidth
+              sx={{ mb: 2 }}
             />
-
             <TextField
               name="description"
               label="Description"

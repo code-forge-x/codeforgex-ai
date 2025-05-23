@@ -7,9 +7,19 @@ import userRoutes from './routes/api/users.js';
 import chatRoutes from './routes/api/chat.js';
 import promptManagementRoutes from './routes/api/promptManagement.js';
 import componentRoutes from './routes/api/components.js';
+import templateImportRoutes from './routes/api/templateImport.js';
+import projectsRoutes from './routes/api/projects.js';
+import aiRoutes from './routes/api/ai.js';
 
 // Load environment variables
 dotenv.config();
+
+// Debug: Check if API key is loaded
+if (!process.env.CLAUDE_API_KEY) {
+  console.error('Warning: CLAUDE_API_KEY is not set in environment variables');
+} else {
+  console.log('CLAUDE_API_KEY is loaded (first 5 chars):', process.env.CLAUDE_API_KEY.substring(0, 5) + '...');
+}
 
 // Initialize Express
 const app = express();
@@ -29,6 +39,9 @@ app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/prompts', promptManagementRoutes);
 app.use('/api/components', componentRoutes);
+app.use('/api/template-import', templateImportRoutes);
+app.use('/api/projects', projectsRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {

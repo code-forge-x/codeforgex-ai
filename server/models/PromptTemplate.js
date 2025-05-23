@@ -16,8 +16,12 @@ const PromptTemplateSchema = new Schema({
   description: { type: String, required: true },
   category: {
     type: String,
-    enum: ['blueprint', 'component_generation', 'tech_support', 'code_analysis', 'system'],
+    enum: ['blueprint', 'component_generation', 'tech_support', 'code_analysis', 'system', 'requirements', 'testing', 'validation'],
     default: 'component_generation'
+  },
+  subcategory: {
+    type: String,
+    default: ''
   },
   status: {
     type: String,

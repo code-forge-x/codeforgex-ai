@@ -1,11 +1,11 @@
 import express from 'express';
-import { authenticate } from '../../middleware/auth.js';
+import { authenticateToken } from '../../middleware/auth.js';
 import fetch from 'node-fetch';
 
 const router = express.Router();
 
 // POST /api/chat
-router.post('/', authenticate, async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   const { message } = req.body;
   if (!message || !message.trim()) {
     return res.status(400).json({ error: 'Message is required' });
@@ -14,14 +14,13 @@ router.post('/', authenticate, async (req, res) => {
   // Log user info for debugging
   console.log('Authenticated user:', req.user);
 
-  // Build Claude API request body using user role and message
+  // Build Claude API request body
   const claudeBody = {
-    model: 'claude-3-7-sonnet-20250219',
-    max_tokens: 1024,
-    stream: true,
+    model: 'claude-3-sonnet-20240229',
+    max_tokens: 18000,
     messages: [
       {
-        role: req.user?.role || 'user',
+        role: 'user',
         content: message
       }
     ]
@@ -47,38 +46,12 @@ router.post('/', authenticate, async (req, res) => {
       return res.status(response.status).json({ error: errorText || 'Failed to call Claude API' });
     }
 
-    // Set headers for streaming
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
+    const data = await response.json();
+    if (!data.content || !data.content[0] || !data.content[0].text) {
+      throw new Error('Invalid response format from Claude API');
+    }
 
-    response.body.on('data', (chunk) => {
-      const lines = chunk.toString().split('\n');
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') {
-            res.write('data: [DONE]\n\n');
-            return res.end();
-          }
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
-              res.write(`data: ${JSON.stringify({ content: parsed.delta.text })}\n\n`);
-            }
-          } catch (e) {
-            console.error('Error parsing JSON:', e);
-          }
-        }
-      }
-    });
-    response.body.on('end', () => {
-      res.end();
-    });
-    response.body.on('error', (err) => {
-      console.error('Stream error:', err);
-      res.end();
-    });
+    res.json({ content: data.content[0].text });
   } catch (error) {
     console.error('Error calling Claude API:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });

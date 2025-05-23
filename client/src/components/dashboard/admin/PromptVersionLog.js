@@ -19,7 +19,7 @@ export default function PromptVersionLog() {
   useEffect(() => {
     const fetchVersions = async () => {
       try {
-        const response = await axios.get(`${API_URL}/prompts/1/versions`); // Placeholder ID
+        const response = await axios.get(`${API_URL}/api/prompts/1/versions`); // Placeholder ID
         setVersions(response.data);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch versions');

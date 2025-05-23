@@ -1,7 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../../models/User.js';
-import { authenticate } from '../../middleware/auth.js';
+import { authenticateToken } from '../../middleware/auth.js';
 
 const router = express.Router();
 
@@ -31,7 +31,7 @@ router.post('/register', async (req, res) => {
     
     // Create JWT token
     const payload = {
-      userId: user.id
+      id: user.id
     };
     
     const token = jwt.sign(
@@ -78,7 +78,7 @@ router.post('/login', async (req, res) => {
     
     // Create JWT token
     const payload = {
-      userId: user.id
+      id: user.id
     };
     
     const token = jwt.sign(
@@ -105,7 +105,7 @@ router.post('/login', async (req, res) => {
 // @route   GET /api/auth/me
 // @desc    Get current user
 // @access  Private
-router.get('/me', authenticate, async (req, res) => {
+router.get('/me', authenticateToken, async (req, res) => {
   try {
     res.json(req.user);
   } catch (error) {

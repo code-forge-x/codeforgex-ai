@@ -24,7 +24,7 @@ export default function PromptPerformance({ templateId }) {
     const fetchPerformance = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_URL}/prompts/performance/${templateId}`);
+        const response = await axios.get(`${API_URL}/api/prompts/performance/${templateId}`);
         setPerformance(response.data.performance || []);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch performance data');
