@@ -1,5 +1,11 @@
 # 🚦 Project Progress Dashboard
 
+> **Security Notice:**
+> As of the latest update, all sensitive files (such as `server/.env`) have been removed from version control and repository history. The `.env` file is now included in `.gitignore` to prevent future accidental commits. 
+> 
+> **Best Practice Reminder:**
+> All contributors must ensure that sensitive files (API keys, secrets, credentials, etc.) are never committed to the repository. Always add such files to `.gitignore` before starting work. If a sensitive file is accidentally committed, notify the team lead and follow the removal process immediately.
+
 **Overall Progress:**
 
 ```

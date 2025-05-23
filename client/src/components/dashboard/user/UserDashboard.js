@@ -322,63 +322,63 @@ const UserDashboard = () => {
         {/* Main Content */}
         <Grid item xs={12} md={10}>
           <Paper sx={{ p: 2, minHeight: '80vh' }}>
-            {/* Top Bar (fixed) */}
-            <Box sx={{
-              width: '100vw',
-              height: `${TOPBAR_HEIGHT}px`,
-              bgcolor: '#232323',
-              py: 1,
-              textAlign: 'center',
-              borderBottom: '1px solid #333',
-              m: 0,
-              zIndex: 100,
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 600, letterSpacing: 1 }}>
-                Welcome to CodeForegex
-              </Typography>
-            </Box>
-            {/* Main Content (fills between top bar and progress tabs) */}
-            <Box sx={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'center',
-              flex: 1,
-              minHeight: 0,
-              my: 1,
+      {/* Top Bar (fixed) */}
+      <Box sx={{
+        width: '100vw',
+        height: `${TOPBAR_HEIGHT}px`,
+        bgcolor: '#232323',
+        py: 1,
+        textAlign: 'center',
+        borderBottom: '1px solid #333',
+        m: 0,
+        zIndex: 100,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 600, letterSpacing: 1 }}>
+          Welcome to CodeForegex
+        </Typography>
+      </Box>
+      {/* Main Content (fills between top bar and progress tabs) */}
+      <Box sx={{
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        flex: 1,
+        minHeight: 0,
+        my: 1,
               height: AVAILABLE_HEIGHT,
               bgcolor: '#181818',
               pb: `${PROGRESS_TABS_HEIGHT}px`, // Prevent overlap with bottom bar
               boxSizing: 'border-box',
-            }}>
-              <Box sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                width: '100vw',
-                flex: 1,
-                minHeight: 0,
-                height: '100%',
-                alignItems: 'stretch',
-                bgcolor: '#181818',
-                gap: SECTION_GAP,
-                boxSizing: 'border-box',
-                margin: 0,
-                padding: 0,
-              }}>
+      }}>
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          width: '100vw',
+          flex: 1,
+          minHeight: 0,
+          height: '100%',
+          alignItems: 'stretch',
+          bgcolor: '#181818',
+          gap: SECTION_GAP,
+          boxSizing: 'border-box',
+          margin: 0,
+          padding: 0,
+        }}>
                 {/* ChatWindow Card */}
-                <Box sx={{
+          <Box sx={{
                   width: 600,
                   minWidth: 420,
                   maxWidth: 700,
                   height: AVAILABLE_HEIGHT,
-                  display: 'flex',
-                  flexDirection: 'column',
+            display: 'flex',
+            flexDirection: 'column',
                   bgcolor: '#181818',
                   boxShadow: 'none',
                   m: 0,
@@ -399,7 +399,7 @@ const UserDashboard = () => {
                   ) : (
                     <Box sx={{ p: 2 }}><Typography>Loading chat session...</Typography></Box>
                   )}
-                </Box>
+          </Box>
                 {/* Main content (tabs) */}
                 <Box sx={{
                   flex: 1,
@@ -419,21 +419,21 @@ const UserDashboard = () => {
                   minHeight: 0,
                 }}>
                   <Box sx={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0, gap: SECTION_GAP }}>
-                    <Tabs
-                      value={tabIndex}
-                      onChange={(_, v) => setTabIndex(v)}
-                      sx={{ bgcolor: '#232323', color: '#fff', borderBottom: '1px solid #222', px: 2, flexShrink: 0 }}
-                      TabIndicatorProps={{ sx: { bgcolor: '#ff9800' } }}
-                    >
-                      {tabLabels.map((label, idx) => (
-                        <Tab key={label} label={label} sx={{ color: '#fff', fontWeight: 600, bgcolor: tabIndex === idx ? '#fff' : 'transparent', color: tabIndex === idx ? '#232323' : '#fff', borderRadius: 2, mx: 1, minWidth: 120 }} />
-                      ))}
-                    </Tabs>
-                    <Box sx={{ width: '100%', borderBottom: '1px solid #333' }} />
+                  <Tabs
+                    value={tabIndex}
+                    onChange={(_, v) => setTabIndex(v)}
+                    sx={{ bgcolor: '#232323', color: '#fff', borderBottom: '1px solid #222', px: 2, flexShrink: 0 }}
+                    TabIndicatorProps={{ sx: { bgcolor: '#ff9800' } }}
+                  >
+                    {tabLabels.map((label, idx) => (
+                      <Tab key={label} label={label} sx={{ color: '#fff', fontWeight: 600, bgcolor: tabIndex === idx ? '#fff' : 'transparent', color: tabIndex === idx ? '#232323' : '#fff', borderRadius: 2, mx: 1, minWidth: 120 }} />
+                    ))}
+                  </Tabs>
+                  <Box sx={{ width: '100%', borderBottom: '1px solid #333' }} />
                     <Box sx={{ flex: 1, p: 0, overflow: 'auto', bgcolor: '#181818', minHeight: 0 }}>
-                      {tabIndex === 0 && (
+                    {tabIndex === 0 && (
                         <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300, width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                          <Typography variant="subtitle1" sx={{ mb: 2 }}>Code Editor</Typography>
+                        <Typography variant="subtitle1" sx={{ mb: 2 }}>Code Editor</Typography>
                           <Box sx={{
                             bgcolor: '#181818',
                             borderRadius: 3,
@@ -489,11 +489,11 @@ const UserDashboard = () => {
                               Download Project
                             </Button>
                           )}
-                        </Paper>
-                      )}
-                      {tabIndex === 1 && (
-                        <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300 }}>
-                          <Typography variant="subtitle1" sx={{ mb: 2 }}>Blueprint</Typography>
+                      </Paper>
+                    )}
+                    {tabIndex === 1 && (
+                      <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300 }}>
+                        <Typography variant="subtitle1" sx={{ mb: 2 }}>Blueprint</Typography>
                           {/* Approve/Reject/Edit buttons above blueprint content */}
                           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                             {!blueprintEditMode && (
@@ -523,60 +523,60 @@ const UserDashboard = () => {
                           ) : (
                             <Typography variant="body2" sx={{ color: '#bbb', whiteSpace: 'pre-wrap' }}>{blueprintDraft || '[Blueprint content goes here]'}</Typography>
                           )}
-                        </Paper>
-                      )}
-                      {tabIndex === 2 && (
-                        <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300 }}>
-                          <Typography variant="subtitle1" sx={{ mb: 2 }}>Preview</Typography>
+                      </Paper>
+                    )}
+                    {tabIndex === 2 && (
+                      <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300 }}>
+                        <Typography variant="subtitle1" sx={{ mb: 2 }}>Preview</Typography>
                           <Typography variant="body2" sx={{ color: '#bbb', whiteSpace: 'pre-wrap' }}>{getTabContent('Preview')}</Typography>
-                        </Paper>
-                      )}
-                      {tabIndex === 3 && (
-                        <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300 }}>
-                          <Typography variant="subtitle1" sx={{ mb: 2 }}>Documentation</Typography>
+                      </Paper>
+                    )}
+                    {tabIndex === 3 && (
+                      <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300 }}>
+                        <Typography variant="subtitle1" sx={{ mb: 2 }}>Documentation</Typography>
                           <Typography variant="body2" sx={{ color: '#bbb', whiteSpace: 'pre-wrap' }}>{getTabContent('Documentation')}</Typography>
-                        </Paper>
-                      )}
-                    </Box>
-                  </Box>
-                  {/* Progress Tabs docked at the very bottom of the main area */}
-                  <Box sx={{
-                    width: '100%',
-                    height: `${PROGRESS_TABS_HEIGHT}px`,
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    bgcolor: '#232323',
-                    borderTop: '1.5px solid #444',
-                    px: 3,
-                    py: 1,
-                    gap: 2,
-                    flexShrink: 0,
-                    borderRadius: 0,
-                    mt: 0,
-                    mb: 4,
-                  }}>
-                    {progressTabs.map((label, idx) => (
-                      <Box key={label} sx={{
-                        flex: 1,
-                        textAlign: 'center',
-                        color: '#fff',
-                        fontWeight: 500,
-                        fontSize: 15,
-                        borderRadius: 2,
-                        border: '1.5px solid #444',
-                        py: 0.5,
-                        mx: 1,
-                        background: '#232323',
-                        letterSpacing: 0.5,
-                      }}>
-                        {label}
-                      </Box>
-                    ))}
-                  </Box>
-                </Box>
+                      </Paper>
+                    )}
               </Box>
+            </Box>
+            {/* Progress Tabs docked at the very bottom of the main area */}
+            <Box sx={{
+              width: '100%',
+              height: `${PROGRESS_TABS_HEIGHT}px`,
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              bgcolor: '#232323',
+              borderTop: '1.5px solid #444',
+              px: 3,
+              py: 1,
+              gap: 2,
+              flexShrink: 0,
+              borderRadius: 0,
+              mt: 0,
+              mb: 4,
+            }}>
+              {progressTabs.map((label, idx) => (
+                <Box key={label} sx={{
+                  flex: 1,
+                  textAlign: 'center',
+                  color: '#fff',
+                  fontWeight: 500,
+                  fontSize: 15,
+                  borderRadius: 2,
+                  border: '1.5px solid #444',
+                  py: 0.5,
+                  mx: 1,
+                  background: '#232323',
+                  letterSpacing: 0.5,
+                }}>
+                  {label}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        </Box>
             </Box>
             {/* Timeline Tabs (bottom) */}
             <Box sx={{
@@ -617,11 +617,11 @@ const UserDashboard = () => {
           </Paper>
         </Grid>
       </Grid>
-      <NewProjectModal
+          <NewProjectModal
         open={showNewProjectModal}
-        onClose={() => setShowNewProjectModal(false)}
+            onClose={() => setShowNewProjectModal(false)}
         onProjectCreated={setSelectedProject}
-      />
+          />
     </Container>
   );
 };
