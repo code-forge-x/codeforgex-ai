@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/routing/PrivateRoute';
@@ -16,7 +16,13 @@ import Dashboard from './components/dashboard/Dashboard';
 import Navbar from './components/layout/Navbar';
 import AdminLayout from './components/dashboard/admin/AdminLayout';
 
-function AppContent() {
+// MUI imports
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import Container from '@mui/material/Container';
+import { NotificationProvider } from './context/NotificationContext';
+
+function AppContent({ toggleTheme, mode }) {
   const location = useLocation();
   const showNavbar = !location.pathname.startsWith('/dashboard') && !location.pathname.startsWith('/admin/dashboard');
   const isUserDashboard = location.pathname.startsWith('/dashboard');
@@ -25,7 +31,7 @@ function AppContent() {
 
   return (
     <>
-      {showNavbar && <Navbar />}
+      {showNavbar && <Navbar toggleTheme={toggleTheme} mode={mode} />}
       {(isUserDashboard || isAdminDashboard) ? (
         <Routes>
           <Route
@@ -51,25 +57,46 @@ function AppContent() {
       ) : isImportUtility ? (
         <TemplateImportUtility />
       ) : (
-        <div className="container">
+        <Container maxWidth="sm" sx={{ mt: 4 }}>
           <Routes>
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Login />} />
           </Routes>
-        </div>
+        </Container>
       )}
     </>
   );
 }
 
 function App() {
+  const [mode, setMode] = useState('dark');
+  const theme = useMemo(() => createTheme({
+    palette: {
+      mode,
+      primary: {
+        main: mode === 'dark' ? '#90caf9' : '#1976d2',
+      },
+      background: {
+        default: mode === 'dark' ? '#121212' : '#fafafa',
+        paper: mode === 'dark' ? '#1e1e1e' : '#fff',
+      },
+    },
+  }), [mode]);
+
+  const toggleTheme = () => setMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
+
   return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <NotificationProvider>
+        <AuthProvider>
+          <Router>
+            <AppContent toggleTheme={toggleTheme} mode={mode} />
+          </Router>
+        </AuthProvider>
+      </NotificationProvider>
+    </ThemeProvider>
   );
 }
 

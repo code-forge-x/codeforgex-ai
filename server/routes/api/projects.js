@@ -6,6 +6,7 @@ import aiClient from '../../services/aiClient.js';
 import Project from '../../models/Project.js';
 import Session from '../../models/Session.js';
 import { distance } from 'fastest-levenshtein';
+import Component from '../../models/Component.js';
 
 const router = express.Router();
 
@@ -429,6 +430,88 @@ router.post('/:id/intent-detect', authenticateToken, async (req, res) => {
     }
   } catch (err) {
     console.error('Error in intent detection:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * @route   POST /api/projects/:id/chat
+ * @desc    Handle user chat message with intent detection and smart routing
+ * @access  Private
+ */
+router.post('/:id/chat', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { message } = req.body;
+    const userId = req.user?.id || req.user_id;
+    const userRole = req.user?.role || req.role || 'user';
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+    // Load intent detection component
+    const intentComponent = await Component.findOne({ name: 'intent_detection_system' });
+    let detectedIntent = { intent: 'requirements', user_level: 'unknown', route: 'requirements' };
+    if (intentComponent && intentComponent.patterns) {
+      // Use patterns from component if available
+      const directCodePattern = new RegExp(intentComponent.patterns.directCode, 'i');
+      const expertIndicators = new RegExp(intentComponent.patterns.expertIndicators, 'gi');
+      const expertMatches = message.match(expertIndicators) || [];
+      if (directCodePattern.test(message) && expertMatches.length > 3) {
+        detectedIntent = { intent: 'direct_code_request', user_level: 'expert', route: 'code_generation' };
+      }
+    } else {
+      // Fallback to hardcoded patterns
+      const directCodePattern = /\b(generate|create|write|code)\s+(the\s+)?(ea|expert|advisor|code)\b/i;
+      const expertIndicators = /\b(mql5|ema|rsi|crossover|\d+\/\d+|pips|session)\b/gi;
+      const expertMatches = message.match(expertIndicators) || [];
+      if (directCodePattern.test(message) && expertMatches.length > 3) {
+        detectedIntent = { intent: 'direct_code_request', user_level: 'expert', route: 'code_generation' };
+      }
+    }
+    console.log('Detected intent:', detectedIntent);
+    // Get the current project and session
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    const session = await Session.findOne({ project_id: id }).sort({ created_at: -1 });
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    // Smart routing based on intent
+    if (detectedIntent.route === 'code_generation') {
+      session.current_phase = 'code';
+      session.phase_status = 'in_progress';
+      session.activity_log.push({
+        timestamp: new Date(),
+        user_id: userId,
+        role: userRole,
+        action: 'advanced',
+        phase: 'code',
+        message: `Intent: direct code request. Routed directly to code generation phase.`
+      });
+      await session.save();
+      // Call AI/codegen here
+      const aiResponse = await aiClient.getResponse(message, Object.fromEntries(session.context_data), 'code');
+      return res.json({ session, routed: 'code_generation', aiResponse });
+    }
+    // Default: requirements gathering
+    session.current_phase = 'requirements';
+    session.phase_status = 'in_progress';
+    session.activity_log.push({
+      timestamp: new Date(),
+      user_id: userId,
+      role: userRole,
+      action: 'updated',
+      phase: 'requirements',
+      message: `Intent: requirements. Routed to requirements gathering phase.`
+    });
+    await session.save();
+    // Call AI/requirements here
+    const aiResponse = await aiClient.getResponse(message, Object.fromEntries(session.context_data), 'requirements');
+    return res.json({ session, routed: 'requirements', aiResponse });
+  } catch (err) {
+    console.error('Error in chat intent routing:', err);
     res.status(500).json({ error: err.message });
   }
 });

@@ -20,6 +20,10 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import { useNotification } from '../../../context/NotificationContext';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
 
 // Chat session structure: { id, name, messages: [] }
 
@@ -45,7 +49,24 @@ const phaseSteps = [
   'Completed'
 ];
 
+// Mock analytics data
+const codeGenData = [
+  { date: '2024-06-01', count: 3 },
+  { date: '2024-06-02', count: 5 },
+  { date: '2024-06-03', count: 2 },
+  { date: '2024-06-04', count: 7 },
+  { date: '2024-06-05', count: 4 },
+];
+const feedbackData = [
+  { rating: '5★', count: 12 },
+  { rating: '4★', count: 7 },
+  { rating: '3★', count: 2 },
+  { rating: '2★', count: 1 },
+  { rating: '1★', count: 0 },
+];
+
 const UserDashboard = () => {
+  const { notify } = useNotification();
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
@@ -254,345 +275,354 @@ const UserDashboard = () => {
   }
 
   return (
-    <Box sx={{ width: '100vw', height: '100vh', bgcolor: '#181818', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Bar (fixed) */}
-      <Box sx={{
-        width: '100vw',
-        height: `${TOPBAR_HEIGHT}px`,
-        bgcolor: '#232323',
-        py: 1,
-        textAlign: 'center',
-        borderBottom: '1px solid #333',
-        m: 0,
-        zIndex: 100,
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 600, letterSpacing: 1 }}>
-          Welcome to CodeForegex
-        </Typography>
-      </Box>
-      {/* Main Content (fills between top bar and progress tabs) */}
-      <Box sx={{
-        width: '100%',
-        display: 'flex',
-        justifyContent: 'center',
-        flex: 1,
-        minHeight: 0,
-        my: 1,
-        height: AVAILABLE_HEIGHT,
-        bgcolor: '#181818',
-        pb: `${PROGRESS_TABS_HEIGHT}px`, // Prevent overlap with bottom bar
-        boxSizing: 'border-box',
-      }}>
-        <Box sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          width: '100vw',
-          flex: 1,
-          minHeight: 0,
-          height: '100%',
-          alignItems: 'stretch',
-          bgcolor: '#181818',
-          gap: SECTION_GAP,
-          boxSizing: 'border-box',
-          margin: 0,
-          padding: 0,
-        }}>
-          {/* Sidebar */}
-          <Box sx={{
-            flexShrink: 0,
-            width: SIDEBAR_WIDTH,
-            height: '100%',
-            minHeight: 0,
-            bgcolor: '#232323',
-            borderRight: '2px solid #444',
-            borderTopRightRadius: 3,
-            borderBottomRightRadius: 3,
-            borderTopLeftRadius: 0,
-            borderBottomLeftRadius: 0,
-            pl: 0,
-            pr: 2,
-            pt: 0,
-            pb: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            overflowY: 'auto',
-            boxSizing: 'border-box',
-            gap: 3,
-            boxShadow: undefined,
-            transition: undefined,
-            ml: 1,
-            overflowX: 'hidden',
-          }}>
-            <Sidebar
-              projects={projects}
-              selectedProject={selectedProject}
-              onProjectSelect={setSelectedProject}
-              onNewProjectClick={() => setShowNewProjectModal(true)}
-              chatSessions={[]}
-              onNewChat={() => {}}
-              onSelectSession={() => {}}
-              selectedSessionId={null}
-              drawerWidth={SIDEBAR_WIDTH}
-              noMessageTextProps={{ sx: { color: '#bbb', fontStyle: 'italic', fontWeight: 500, fontSize: 14 } }}
-            />
-          </Box>
-          {/* ChatWindow Card */}
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+      {/* Analytics Section */}
+      <Grid container spacing={3} sx={{ mb: 2 }}>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2, mb: 2 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>Code Generations Over Time</Typography>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={codeGenData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis allowDecimals={false} />
+                <RechartsTooltip />
+                <Legend />
+                <Line type="monotone" dataKey="count" stroke="#1976d2" name="Code Generations" />
+              </LineChart>
+            </ResponsiveContainer>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2, mb: 2 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>Feedback Ratings</Typography>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={feedbackData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="rating" />
+                <YAxis allowDecimals={false} />
+                <RechartsTooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#ff9800" name="Ratings" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Paper>
+        </Grid>
+      </Grid>
+      <Grid container spacing={3}>
+        {/* Sidebar */}
+        <Grid item xs={12} md={2}>
+          <Sidebar
+            projects={projects}
+            selectedProject={selectedProject}
+            setSelectedProject={setSelectedProject}
+            setShowNewProjectModal={setShowNewProjectModal}
+          />
+        </Grid>
+        {/* Main Content */}
+        <Grid item xs={12} md={10}>
+          <Paper sx={{ p: 2, minHeight: '80vh' }}>
+            {/* Top Bar (fixed) */}
+            <Box sx={{
+              width: '100vw',
+              height: `${TOPBAR_HEIGHT}px`,
+              bgcolor: '#232323',
+              py: 1,
+              textAlign: 'center',
+              borderBottom: '1px solid #333',
+              m: 0,
+              zIndex: 100,
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 600, letterSpacing: 1 }}>
+                Welcome to CodeForegex
+              </Typography>
+            </Box>
+            {/* Main Content (fills between top bar and progress tabs) */}
+            <Box sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              flex: 1,
+              minHeight: 0,
+              my: 1,
+              height: AVAILABLE_HEIGHT,
+              bgcolor: '#181818',
+              pb: `${PROGRESS_TABS_HEIGHT}px`, // Prevent overlap with bottom bar
+              boxSizing: 'border-box',
+            }}>
               <Box sx={{
-            width: 600,
-            minWidth: 420,
-            maxWidth: 700,
-            height: AVAILABLE_HEIGHT,
                 display: 'flex',
-                flexDirection: 'column',
-            bgcolor: '#181818',
-            boxShadow: 'none',
-            m: 0,
-            p: 0,
-            border: 'none',
-            borderRadius: 0,
-                overflow: 'hidden',
-            alignSelf: 'flex-start',
-            minHeight: 0,
-          }}>
-            {session ? (
-              <ChatWindow 
-                session={session} 
-                currentPhase={session.current_phase || 'requirements'} 
-                onPhaseAction={handlePhaseAction} 
-                onContextUpdate={handleContextUpdate} 
-              />
-            ) : (
-              <Box sx={{ p: 2 }}><Typography>Loading chat session...</Typography></Box>
-            )}
-              </Box>
-          {/* Main content (tabs) */}
+                flexDirection: 'row',
+                width: '100vw',
+                flex: 1,
+                minHeight: 0,
+                height: '100%',
+                alignItems: 'stretch',
+                bgcolor: '#181818',
+                gap: SECTION_GAP,
+                boxSizing: 'border-box',
+                margin: 0,
+                padding: 0,
+              }}>
+                {/* ChatWindow Card */}
                 <Box sx={{
-                  flex: 1,
-            minWidth: 0,
-            height: AVAILABLE_HEIGHT,
-            maxHeight: AVAILABLE_HEIGHT,
+                  width: 600,
+                  minWidth: 420,
+                  maxWidth: 700,
+                  height: AVAILABLE_HEIGHT,
                   display: 'flex',
                   flexDirection: 'column',
-            ml: 0,
-            mt: 2,
-            mb: 2,
-            bgcolor: '#181818',
+                  bgcolor: '#181818',
+                  boxShadow: 'none',
+                  m: 0,
+                  p: 0,
+                  border: 'none',
+                  borderRadius: 0,
+                  overflow: 'hidden',
+                  alignSelf: 'flex-start',
+                  minHeight: 0,
+                }}>
+                  {session ? (
+                    <ChatWindow 
+                      session={session} 
+                      currentPhase={session.current_phase || 'requirements'} 
+                      onPhaseAction={handlePhaseAction} 
+                      onContextUpdate={handleContextUpdate} 
+                    />
+                  ) : (
+                    <Box sx={{ p: 2 }}><Typography>Loading chat session...</Typography></Box>
+                  )}
+                </Box>
+                {/* Main content (tabs) */}
+                <Box sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  height: AVAILABLE_HEIGHT,
+                  maxHeight: AVAILABLE_HEIGHT,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  ml: 0,
+                  mt: 2,
+                  mb: 2,
+                  bgcolor: '#181818',
                   border: '2px solid #444',
                   borderRadius: 3,
                   boxSizing: 'border-box',
                   overflow: 'hidden',
-            minHeight: 0,
+                  minHeight: 0,
                 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0, gap: SECTION_GAP }}>
-                  <Tabs
-                    value={tabIndex}
-                    onChange={(_, v) => setTabIndex(v)}
-                    sx={{ bgcolor: '#232323', color: '#fff', borderBottom: '1px solid #222', px: 2, flexShrink: 0 }}
-                    TabIndicatorProps={{ sx: { bgcolor: '#ff9800' } }}
-                  >
-                    {tabLabels.map((label, idx) => (
-                      <Tab key={label} label={label} sx={{ color: '#fff', fontWeight: 600, bgcolor: tabIndex === idx ? '#fff' : 'transparent', color: tabIndex === idx ? '#232323' : '#fff', borderRadius: 2, mx: 1, minWidth: 120 }} />
-                    ))}
-                  </Tabs>
-                  <Box sx={{ width: '100%', borderBottom: '1px solid #333' }} />
-              <Box sx={{ flex: 1, p: 0, overflow: 'auto', bgcolor: '#181818', minHeight: 0 }}>
-                    {tabIndex === 0 && (
-                  <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300, width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                        <Typography variant="subtitle1" sx={{ mb: 2 }}>Code Editor</Typography>
-                    <Box sx={{
-                      bgcolor: '#181818',
-                      borderRadius: 3,
-                      p: 2,
-                      mb: 2,
-                      boxShadow: 2,
-                      border: '1.5px solid #444',
-                      overflowX: 'auto',
-                      width: '100%',
-                      maxWidth: '100%',
-                      minWidth: 0,
-                      display: 'block',
-                      flex: 1,
-                      boxSizing: 'border-box',
-                    }}>
-                      <ReactMarkdown
-                        children={getTabContent('Code Editor')}
-                        components={{
-                          code({ node, inline, className, children, ...props }) {
-                            const match = /language-(\w+)/.exec(className || '');
-                            const codeString = String(children).replace(/\n$/, '');
-                            return !inline ? (
-                              <Box sx={{ position: 'relative', mb: 1, width: '100%', maxWidth: '100%', minWidth: 0, display: 'block', flex: 1 }}>
-                                <IconButton
-                                  size="small"
-                                  sx={{ position: 'absolute', top: 8, right: 8, zIndex: 2, bgcolor: '#333', color: '#fff', '&:hover': { bgcolor: '#1976d2' } }}
-                                  onClick={() => copyToClipboard(codeString)}
-                                  title="Copy code"
-                                >
-                                  <ContentCopyIcon fontSize="small" />
-                                </IconButton>
-                                <SyntaxHighlighter
-                                  style={oneDark}
-                                  language={match ? match[1] : 'plaintext'}
-                                  PreTag="div"
-                                  customStyle={{ borderRadius: 10, fontSize: 15, margin: '8px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.10)', border: '1.5px solid #444', overflowX: 'auto', width: '100%', maxWidth: '100%', minWidth: 0, display: 'block', flex: 1 }}
-                                  {...props}
-                                >
-                                  {codeString}
-                                </SyntaxHighlighter>
-                              </Box>
-                            ) : (
-                              <code style={{ background: '#333', color: '#fff', borderRadius: 4, padding: '2px 6px' }} {...props}>
-                                {children}
-                              </code>
-                            );
-                          }
-                        }}
-                      />
+                  <Box sx={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0, gap: SECTION_GAP }}>
+                    <Tabs
+                      value={tabIndex}
+                      onChange={(_, v) => setTabIndex(v)}
+                      sx={{ bgcolor: '#232323', color: '#fff', borderBottom: '1px solid #222', px: 2, flexShrink: 0 }}
+                      TabIndicatorProps={{ sx: { bgcolor: '#ff9800' } }}
+                    >
+                      {tabLabels.map((label, idx) => (
+                        <Tab key={label} label={label} sx={{ color: '#fff', fontWeight: 600, bgcolor: tabIndex === idx ? '#fff' : 'transparent', color: tabIndex === idx ? '#232323' : '#fff', borderRadius: 2, mx: 1, minWidth: 120 }} />
+                      ))}
+                    </Tabs>
+                    <Box sx={{ width: '100%', borderBottom: '1px solid #333' }} />
+                    <Box sx={{ flex: 1, p: 0, overflow: 'auto', bgcolor: '#181818', minHeight: 0 }}>
+                      {tabIndex === 0 && (
+                        <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300, width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                          <Typography variant="subtitle1" sx={{ mb: 2 }}>Code Editor</Typography>
+                          <Box sx={{
+                            bgcolor: '#181818',
+                            borderRadius: 3,
+                            p: 2,
+                            mb: 2,
+                            boxShadow: 2,
+                            border: '1.5px solid #444',
+                            overflowX: 'auto',
+                            width: '100%',
+                            maxWidth: '100%',
+                            minWidth: 0,
+                            display: 'block',
+                            flex: 1,
+                            boxSizing: 'border-box',
+                          }}>
+                            <ReactMarkdown
+                              children={getTabContent('Code Editor')}
+                              components={{
+                                code({ node, inline, className, children, ...props }) {
+                                  const match = /language-(\w+)/.exec(className || '');
+                                  const codeString = String(children).replace(/\n$/, '');
+                                  return !inline ? (
+                                    <Box sx={{ position: 'relative', mb: 1, width: '100%', maxWidth: '100%', minWidth: 0, display: 'block', flex: 1 }}>
+                                      <IconButton
+                                        size="small"
+                                        sx={{ position: 'absolute', top: 8, right: 8, zIndex: 2, bgcolor: '#333', color: '#fff', '&:hover': { bgcolor: '#1976d2' } }}
+                                        onClick={() => copyToClipboard(codeString)}
+                                        title="Copy code"
+                                      >
+                                        <ContentCopyIcon fontSize="small" />
+                                      </IconButton>
+                                      <SyntaxHighlighter
+                                        style={oneDark}
+                                        language={match ? match[1] : 'plaintext'}
+                                        PreTag="div"
+                                        customStyle={{ borderRadius: 10, fontSize: 15, margin: '8px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.10)', border: '1.5px solid #444', overflowX: 'auto', width: '100%', maxWidth: '100%', minWidth: 0, display: 'block', flex: 1 }}
+                                        {...props}
+                                      >
+                                        {codeString}
+                                      </SyntaxHighlighter>
+                                    </Box>
+                                  ) : (
+                                    <code style={{ background: '#333', color: '#fff', borderRadius: 4, padding: '2px 6px' }} {...props}>
+                                      {children}
+                                    </code>
+                                  );
+                                }
+                              }}
+                            />
+                          </Box>
+                          {selectedProject?.status === 'completed' && (
+                            <Button variant="contained" color="success" sx={{ mt: 2 }} onClick={handleDownload}>
+                              Download Project
+                            </Button>
+                          )}
+                        </Paper>
+                      )}
+                      {tabIndex === 1 && (
+                        <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300 }}>
+                          <Typography variant="subtitle1" sx={{ mb: 2 }}>Blueprint</Typography>
+                          {/* Approve/Reject/Edit buttons above blueprint content */}
+                          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                            {!blueprintEditMode && (
+                              <>
+                                <Button variant="contained" color="success" onClick={handleBlueprintApprove} sx={{ fontWeight: 600, borderRadius: 2 }}>Approve</Button>
+                                <Button variant="outlined" color="error" onClick={handleBlueprintReject} sx={{ fontWeight: 600, borderRadius: 2 }}>Reject</Button>
+                                <Button variant="outlined" color="warning" onClick={handleBlueprintEdit} sx={{ fontWeight: 600, borderRadius: 2 }}>Edit</Button>
+                              </>
+                            )}
+                            {blueprintEditMode && (
+                              <>
+                                <Button variant="contained" color="primary" onClick={handleBlueprintSaveEdit} sx={{ fontWeight: 600, borderRadius: 2 }}>Save</Button>
+                                <Button variant="outlined" color="secondary" onClick={() => setBlueprintEditMode(false)} sx={{ fontWeight: 600, borderRadius: 2 }}>Cancel</Button>
+                              </>
+                            )}
+                          </Box>
+                          {blueprintEditMode ? (
+                            <TextField
+                              multiline
+                              minRows={10}
+                              fullWidth
+                              value={blueprintDraft}
+                              onChange={e => setBlueprintDraft(e.target.value)}
+                              sx={{ bgcolor: '#181818', color: '#fff', borderRadius: 2, '& .MuiInputBase-input': { color: '#fff' } }}
+                              InputProps={{ sx: { color: '#fff' } }}
+                            />
+                          ) : (
+                            <Typography variant="body2" sx={{ color: '#bbb', whiteSpace: 'pre-wrap' }}>{blueprintDraft || '[Blueprint content goes here]'}</Typography>
+                          )}
+                        </Paper>
+                      )}
+                      {tabIndex === 2 && (
+                        <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300 }}>
+                          <Typography variant="subtitle1" sx={{ mb: 2 }}>Preview</Typography>
+                          <Typography variant="body2" sx={{ color: '#bbb', whiteSpace: 'pre-wrap' }}>{getTabContent('Preview')}</Typography>
+                        </Paper>
+                      )}
+                      {tabIndex === 3 && (
+                        <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300 }}>
+                          <Typography variant="subtitle1" sx={{ mb: 2 }}>Documentation</Typography>
+                          <Typography variant="body2" sx={{ color: '#bbb', whiteSpace: 'pre-wrap' }}>{getTabContent('Documentation')}</Typography>
+                        </Paper>
+                      )}
                     </Box>
-                    {selectedProject?.status === 'completed' && (
-                      <Button variant="contained" color="success" sx={{ mt: 2 }} onClick={handleDownload}>
-                        Download Project
-                      </Button>
-                    )}
-                  </Paper>
-                    )}
-                    {tabIndex === 1 && (
-                      <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300 }}>
-                        <Typography variant="subtitle1" sx={{ mb: 2 }}>Blueprint</Typography>
-                        {/* Approve/Reject/Edit buttons above blueprint content */}
-                        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                          {!blueprintEditMode && (
-                            <>
-                              <Button variant="contained" color="success" onClick={handleBlueprintApprove} sx={{ fontWeight: 600, borderRadius: 2 }}>Approve</Button>
-                              <Button variant="outlined" color="error" onClick={handleBlueprintReject} sx={{ fontWeight: 600, borderRadius: 2 }}>Reject</Button>
-                              <Button variant="outlined" color="warning" onClick={handleBlueprintEdit} sx={{ fontWeight: 600, borderRadius: 2 }}>Edit</Button>
-                            </>
-                          )}
-                          {blueprintEditMode && (
-                            <>
-                              <Button variant="contained" color="primary" onClick={handleBlueprintSaveEdit} sx={{ fontWeight: 600, borderRadius: 2 }}>Save</Button>
-                              <Button variant="outlined" color="secondary" onClick={() => setBlueprintEditMode(false)} sx={{ fontWeight: 600, borderRadius: 2 }}>Cancel</Button>
-                            </>
-                          )}
-                        </Box>
-                        {blueprintEditMode ? (
-                          <TextField
-                            multiline
-                            minRows={10}
-                            fullWidth
-                            value={blueprintDraft}
-                            onChange={e => setBlueprintDraft(e.target.value)}
-                            sx={{ bgcolor: '#181818', color: '#fff', borderRadius: 2, '& .MuiInputBase-input': { color: '#fff' } }}
-                            InputProps={{ sx: { color: '#fff' } }}
-                          />
-                        ) : (
-                          <Typography variant="body2" sx={{ color: '#bbb', whiteSpace: 'pre-wrap' }}>{blueprintDraft || '[Blueprint content goes here]'}</Typography>
-                        )}
-                      </Paper>
-                    )}
-                    {tabIndex === 2 && (
-                      <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300 }}>
-                        <Typography variant="subtitle1" sx={{ mb: 2 }}>Preview</Typography>
-                    <Typography variant="body2" sx={{ color: '#bbb', whiteSpace: 'pre-wrap' }}>{getTabContent('Preview')}</Typography>
-                      </Paper>
-                    )}
-                    {tabIndex === 3 && (
-                      <Paper sx={{ bgcolor: '#232323', color: '#fff', p: 2, m: 0, minHeight: 300 }}>
-                        <Typography variant="subtitle1" sx={{ mb: 2 }}>Documentation</Typography>
-                    <Typography variant="body2" sx={{ color: '#bbb', whiteSpace: 'pre-wrap' }}>{getTabContent('Documentation')}</Typography>
-                      </Paper>
-                    )}
+                  </Box>
+                  {/* Progress Tabs docked at the very bottom of the main area */}
+                  <Box sx={{
+                    width: '100%',
+                    height: `${PROGRESS_TABS_HEIGHT}px`,
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    bgcolor: '#232323',
+                    borderTop: '1.5px solid #444',
+                    px: 3,
+                    py: 1,
+                    gap: 2,
+                    flexShrink: 0,
+                    borderRadius: 0,
+                    mt: 0,
+                    mb: 4,
+                  }}>
+                    {progressTabs.map((label, idx) => (
+                      <Box key={label} sx={{
+                        flex: 1,
+                        textAlign: 'center',
+                        color: '#fff',
+                        fontWeight: 500,
+                        fontSize: 15,
+                        borderRadius: 2,
+                        border: '1.5px solid #444',
+                        py: 0.5,
+                        mx: 1,
+                        background: '#232323',
+                        letterSpacing: 0.5,
+                      }}>
+                        {label}
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
               </Box>
             </Box>
-            {/* Progress Tabs docked at the very bottom of the main area */}
+            {/* Timeline Tabs (bottom) */}
             <Box sx={{
-              width: '100%',
+              width: '100vw',
               height: `${PROGRESS_TABS_HEIGHT}px`,
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
               bgcolor: '#232323',
-              borderTop: '1.5px solid #444',
-              px: 3,
-              py: 1,
-              gap: 2,
-              flexShrink: 0,
-              borderRadius: 0,
-              mt: 0,
-              mb: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderTop: '1.5px solid #333',
+              position: 'fixed',
+              left: 0,
+              bottom: 0,
+              zIndex: 100,
             }}>
               {progressTabs.map((label, idx) => (
-                <Box key={label} sx={{
-                  flex: 1,
-                  textAlign: 'center',
-                  color: '#fff',
-                  fontWeight: 500,
-                  fontSize: 15,
-                  borderRadius: 2,
-                  border: '1.5px solid #444',
-                  py: 0.5,
-                  mx: 1,
-                  background: '#232323',
-                  letterSpacing: 0.5,
-                }}>
+                <Button
+                  key={label}
+                  variant="text"
+                  sx={{
+                    color: tabIndex === idx ? '#ff9800' : '#fff',
+                    fontWeight: 600,
+                    fontSize: 16,
+                    borderRadius: 2,
+                    mx: 2,
+                    px: 3,
+                    py: 1.5,
+                    bgcolor: tabIndex === idx ? '#23272f' : 'transparent',
+                    borderBottom: tabIndex === idx ? '3px solid #ff9800' : 'none',
+                    transition: 'all 0.2s',
+                  }}
+                  onClick={() => setTabIndex(idx)}
+                >
                   {label}
-                </Box>
+                </Button>
               ))}
             </Box>
-          </Box>
-        </Box>
-        {showNewProjectModal && (
-          <NewProjectModal
-            onClose={() => setShowNewProjectModal(false)}
-            onCreateProject={() => {}}
-          />
-        )}
-      </Box>
-      {/* Timeline Tabs (bottom) */}
-      <Box sx={{
-        width: '100vw',
-        height: `${PROGRESS_TABS_HEIGHT}px`,
-        bgcolor: '#232323',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderTop: '1.5px solid #333',
-        position: 'fixed',
-        left: 0,
-        bottom: 0,
-        zIndex: 100,
-      }}>
-        {progressTabs.map((label, idx) => (
-          <Button
-            key={label}
-            variant="text"
-            sx={{
-              color: tabIndex === idx ? '#ff9800' : '#fff',
-              fontWeight: 600,
-              fontSize: 16,
-              borderRadius: 2,
-              mx: 2,
-              px: 3,
-              py: 1.5,
-              bgcolor: tabIndex === idx ? '#23272f' : 'transparent',
-              borderBottom: tabIndex === idx ? '3px solid #ff9800' : 'none',
-              transition: 'all 0.2s',
-            }}
-            onClick={() => setTabIndex(idx)}
-          >
-            {label}
-          </Button>
-        ))}
-      </Box>
-    </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+      <NewProjectModal
+        open={showNewProjectModal}
+        onClose={() => setShowNewProjectModal(false)}
+        onProjectCreated={setSelectedProject}
+      />
+    </Container>
   );
 };
 
