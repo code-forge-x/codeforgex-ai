@@ -25,8 +25,14 @@ const LoginComponent = () => {
     
     try {
       console.log('Attempting login with:', formData);
-      await login(formData);
-      navigate('/dashboard');
+      const data = await login(formData);
+      // Use the user object from login response or from AuthContext
+      const user = data?.user || (authContext && authContext.user);
+      if (user && user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       console.error('Login component error:', err);
     }

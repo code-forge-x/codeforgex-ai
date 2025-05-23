@@ -1,8 +1,8 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
 // Middleware to verify JWT token
-exports.authenticate = async (req, res, next) => {
+export const authenticate = async (req, res, next) => {
   try {
     // Get token from header
     const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -30,7 +30,7 @@ exports.authenticate = async (req, res, next) => {
 };
 
 // Middleware to check user role
-exports.authorize = (...roles) => {
+export const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ 
@@ -39,4 +39,44 @@ exports.authorize = (...roles) => {
     }
     next();
   };
+};
+
+export const authenticateToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+    if (!token) {
+      return res.status(401).json({ 
+        success: false,
+        message: 'Access token is required' 
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Find user by id from the decoded token
+    const user = await User.findById(decoded.userId).select('-password');
+    
+    if (!user) {
+      return res.status(401).json({ 
+        success: false,
+        message: 'User not found' 
+      });
+    }
+
+    // Set the full user object in the request
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return res.status(403).json({ 
+      success: false,
+      message: 'Invalid or expired token' 
+    });
+  }
+};
+
+export default {
+  authenticateToken
 };

@@ -1,7 +1,12 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import authRoutes from './routes/api/auth.js';
+import userRoutes from './routes/api/users.js';
+import chatRoutes from './routes/api/chat.js';
+import promptManagementRoutes from './routes/api/promptManagement.js';
+import componentRoutes from './routes/api/components.js';
 
 // Load environment variables
 dotenv.config();
@@ -19,13 +24,11 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const chatRoutes = require('./routes/chat');
-
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/prompts', promptManagementRoutes);
+app.use('/api/components', componentRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
