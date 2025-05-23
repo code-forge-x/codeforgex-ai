@@ -14,6 +14,8 @@
         "diff": "^5.1.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
+        "react-icons": "^5.5.0",
+        "react-markdown": "^10.1.0",
         "react-router-dom": "^6.22.3",
         "react-scripts": "5.0.1",
         "react-syntax-highlighter": "^15.6.1",
@@ -30,7 +32,9 @@
             "react-app",
             "react-app/jest"
         ],
-        "plugins": ["react"],
+        "plugins": [
+            "react"
+        ],
         "settings": {
             "react": {
                 "version": "detect"

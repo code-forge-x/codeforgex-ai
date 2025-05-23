@@ -45,7 +45,7 @@ export default function PromptTemplateList() {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${API_URL}/prompts/templates?search=${search}`);
+      const response = await axios.get(`${API_URL}/api/prompts/templates?search=${search}`);
       const templatesData = response.data.templates || response.data || [];
       setTemplates(templatesData);
     } catch (err) {
@@ -92,7 +92,7 @@ export default function PromptTemplateList() {
     const template = deleteDialog.template;
     try {
       setLoading(true);
-      await axios.delete(`${API_URL}/prompts/templates/${template.activeVersion?._id || template._id}`);
+      await axios.delete(`${API_URL}/api/prompts/templates/${template.activeVersion?._id || template._id}`);
       setDeleteDialog({ open: false, template: null });
       fetchTemplates();
     } catch (err) {
@@ -144,6 +144,9 @@ export default function PromptTemplateList() {
 
   return (
     <Box sx={{ width: '100%' }}>
+      <Alert severity="warning" sx={{ mb: 2, fontWeight: 'bold', fontSize: 16 }}>
+        🚨 <b>REMINDER:</b> Phase-specific prompt templates are required for orchestration & phase transition logic. This is the top priority. See PROJECT_PROGRESS.md for details.
+      </Alert>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h5">Prompt Templates</Typography>
         <Button

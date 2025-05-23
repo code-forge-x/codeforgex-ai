@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       
       console.log('Registering user with data:', userData);
-      const res = await axios.post(`${API_URL}/auth/register`, userData);
+      const res = await axios.post(`${API_URL}/api/auth/register`, userData);
       console.log('Registration response:', res.data);
       
       localStorage.setItem('token', res.data.token);
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       
       console.log('Logging in with:', userData);
-      const res = await axios.post(`${API_URL}/auth/login`, userData);
+      const res = await axios.post(`${API_URL}/api/auth/login`, userData);
       console.log('Login response:', res.data);
       
       localStorage.setItem('token', res.data.token);

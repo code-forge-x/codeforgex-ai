@@ -91,7 +91,7 @@ export default function TemplateDetails({ template, onBack, onUpdate }) {
       try {
         setLoading(true);
         setError(null);
-        const response = await axios.get(`${API_URL}/prompts/templates/${template._id}/versions`);
+        const response = await axios.get(`${API_URL}/api/prompts/templates/${template._id}/versions`);
         if (response.data.versions) {
           // Sort versions by version number in descending order
           const sortedVersions = response.data.versions.sort((a, b) => b.version - a.version);
@@ -128,7 +128,7 @@ export default function TemplateDetails({ template, onBack, onUpdate }) {
     
     // Refresh version history
     try {
-      const response = await axios.get(`${API_URL}/prompts/templates/${template._id}/versions`);
+      const response = await axios.get(`${API_URL}/api/prompts/templates/${template._id}/versions`);
       if (response.data.versions) {
         // Sort versions by version number in descending order
         const sortedVersions = response.data.versions.sort((a, b) => b.version - a.version);
@@ -152,14 +152,14 @@ export default function TemplateDetails({ template, onBack, onUpdate }) {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.post(`${API_URL}/prompts/templates/${version._id}/activate`, {
+      const response = await axios.post(`${API_URL}/api/prompts/templates/${version._id}/activate`, {
         notes: `Activated version ${version.version}`
       });
       setActivateDialog({ open: false, version: null });
       setSuccess(response.data.message || 'Version activated successfully');
       
       // Refresh version history
-      const versionResponse = await axios.get(`${API_URL}/prompts/templates/${template._id}/versions`);
+      const versionResponse = await axios.get(`${API_URL}/api/prompts/templates/${template._id}/versions`);
       setVersionHistory(versionResponse.data.versions || []);
       
       // Update the current template with the activated version
@@ -197,8 +197,8 @@ export default function TemplateDetails({ template, onBack, onUpdate }) {
       setLoading(true);
       setError(null);
       const [fromVersion, toVersion] = await Promise.all([
-        axios.get(`${API_URL}/prompts/templates/${selectedVersions.from}`),
-        axios.get(`${API_URL}/prompts/templates/${selectedVersions.to}`)
+        axios.get(`${API_URL}/api/prompts/templates/${selectedVersions.from}`),
+        axios.get(`${API_URL}/api/prompts/templates/${selectedVersions.to}`)
       ]);
       setVersionDetails({
         from: fromVersion.data,

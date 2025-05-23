@@ -3,7 +3,7 @@ import { FaPlus, FaSearch, FaEye, FaTimes, FaInfoCircle } from 'react-icons/fa';
 import axios from 'axios';
 import API_URL from '../../../api';
 import './TemplateEditor.css';
-import { Box, Grid, TextField, Chip, IconButton, InputAdornment, Typography, Paper, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress } from '@mui/material';
+import { Box, Grid, TextField, Chip, IconButton, InputAdornment, Typography, Paper, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Button, CircularProgress, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 
 const TemplateEditor = ({ template: initialTemplate, onSuccess, onClose }) => {
@@ -79,7 +79,7 @@ const TemplateEditor = ({ template: initialTemplate, onSuccess, onClose }) => {
 
   const fetchComponents = async () => {
     try {
-      const response = await axios.get(`${API_URL}/prompts/components`, getAuthHeaders());
+      const response = await axios.get(`${API_URL}/api/prompts/components`, getAuthHeaders());
       setComponents(Array.isArray(response.data) ? response.data : response.data.components || []);
     } catch (err) {
       console.error('Error fetching components:', err);
@@ -174,7 +174,7 @@ const TemplateEditor = ({ template: initialTemplate, onSuccess, onClose }) => {
     try {
       setLoading(true);
       const response = await axios.post(
-        `${API_URL}/prompts/templates/preview`,
+        `${API_URL}/api/prompts/templates/preview`,
         { content: template.content },
         getAuthHeaders()
       );
@@ -210,7 +210,7 @@ const TemplateEditor = ({ template: initialTemplate, onSuccess, onClose }) => {
         console.log('Sending update data:', updateData);
 
         response = await axios.put(
-          `${API_URL}/prompts/templates/${template._id}`,
+          `${API_URL}/api/prompts/templates/${template._id}`,
           updateData,
           getAuthHeaders()
         );
@@ -229,7 +229,7 @@ const TemplateEditor = ({ template: initialTemplate, onSuccess, onClose }) => {
         };
 
         response = await axios.post(
-          `${API_URL}/prompts/templates`,
+          `${API_URL}/api/prompts/templates`,
           newTemplateData,
           getAuthHeaders()
         );
@@ -362,7 +362,10 @@ const TemplateEditor = ({ template: initialTemplate, onSuccess, onClose }) => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 2 }}>
+      <Alert severity="warning" sx={{ mb: 2, fontWeight: 'bold', fontSize: 16 }}>
+        🚨 <b>REMINDER:</b> Phase-specific prompt templates are required for orchestration & phase transition logic. This is the top priority. See PROJECT_PROGRESS.md for details.
+      </Alert>
       <div className="template-editor">
         <div className="editor-header">
           <h1>{isEditMode ? 'Edit Template' : 'Create New Template'}</h1>

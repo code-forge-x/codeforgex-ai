@@ -62,6 +62,7 @@ const promptPerformanceTracker = async (req, res, next) => {
   if (!req.promptPerformanceId) {
     return next();
   }
+
   res.end = function(chunk, encoding) {
     let responseBody;
     try {
@@ -70,15 +71,49 @@ const promptPerformanceTracker = async (req, res, next) => {
     } catch (e) {
       responseBody = { success: false, error: 'Non-JSON response' };
     }
+
+    const startTime = req.startTime || Date.now();
+    const aiProcessingTime = responseBody.processingTime || 0;
+    const totalTime = Date.now() - startTime;
+    const networkTime = totalTime - aiProcessingTime;
+
     const metrics = {
-      success: responseBody.error ? false : true,
-      error: responseBody.error,
-      tokenUsage: responseBody.usage || { inputTokens: 0, outputTokens: 0 },
-      latency: responseBody.latency || (Date.now() - req.startTime)
+      success: !responseBody.error,
+      tokenUsage: {
+        inputTokens: responseBody.usage?.inputTokens || 0,
+        outputTokens: responseBody.usage?.outputTokens || 0,
+        totalTokens: (responseBody.usage?.inputTokens || 0) + (responseBody.usage?.outputTokens || 0)
+      },
+      latency: {
+        total: totalTime,
+        aiProcessing: aiProcessingTime,
+        network: networkTime
+      },
+      error: responseBody.error ? {
+        type: responseBody.error.type || 'other',
+        message: responseBody.error.message || responseBody.error,
+        stack: responseBody.error.stack,
+        retryCount: responseBody.error.retryCount || 0
+      } : null,
+      requestSize: req.headers['content-length'] || 0,
+      phase: req.body.phase || 'unknown',
+      quality: {
+        clarity: responseBody.quality?.clarity,
+        accuracy: responseBody.quality?.accuracy,
+        codeQuality: responseBody.quality?.codeQuality,
+        testCoverage: responseBody.quality?.testCoverage
+      },
+      userFeedback: responseBody.userFeedback || null,
+      completedAt: new Date()
     };
-    promptManager.trackPerformance(req.promptPerformanceId, metrics).catch(() => {});
+
+    promptManager.trackPerformance(req.promptPerformanceId, metrics).catch(err => {
+      console.error('Failed to track performance:', err);
+    });
+
     originalEnd.call(this, chunk, encoding);
   };
+
   req.startTime = Date.now();
   next();
 };

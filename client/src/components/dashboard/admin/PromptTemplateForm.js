@@ -112,11 +112,11 @@ export default function PromptTemplateForm({ open, onClose, template, onSuccess 
       let response;
       if (template?._id) {
         // Update existing template (creates new version)
-        response = await axios.put(`${API_URL}/prompts/templates/${template._id}`, payload);
+        response = await axios.put(`${API_URL}/api/prompts/templates/${template._id}`, payload);
         onSuccess(response.data.template);
       } else {
         // Create new template
-        response = await axios.post(`${API_URL}/prompts/templates`, payload);
+        response = await axios.post(`${API_URL}/api/prompts/templates`, payload);
         onSuccess(response.data.template);
       }
     } catch (err) {
@@ -131,6 +131,9 @@ export default function PromptTemplateForm({ open, onClose, template, onSuccess 
       <DialogTitle>
         {template ? 'Edit Template' : 'Create New Template'}
       </DialogTitle>
+      <Alert severity="warning" sx={{ mb: 2, fontWeight: 'bold', fontSize: 16 }}>
+        🚨 <b>REMINDER:</b> Phase-specific prompt templates are required for orchestration & phase transition logic. This is the top priority. See PROJECT_PROGRESS.md for details.
+      </Alert>
       <form onSubmit={handleSubmit}>
         <DialogContent>
           {error && (

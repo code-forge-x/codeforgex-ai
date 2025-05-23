@@ -40,7 +40,7 @@ const PromptCreator = () => {
 
   const fetchComponents = async () => {
     try {
-      const response = await axios.get(`${API_URL}/prompts/components`, getAuthHeaders());
+      const response = await axios.get(`${API_URL}/api/prompts/components`, getAuthHeaders());
       setComponents(Array.isArray(response.data) ? response.data : response.data.components || []);
     } catch (err) {
       console.error('Error fetching components:', err);
@@ -128,7 +128,7 @@ const PromptCreator = () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        `${API_URL}/prompts/templates/preview`,
+        `${API_URL}/api/prompts/templates/preview`,
         { content: prompt.content },
         getAuthHeaders()
       );
@@ -146,7 +146,7 @@ const PromptCreator = () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        `${API_URL}/prompts/templates`,
+        `${API_URL}/api/prompts/templates`,
         prompt,
         getAuthHeaders()
       );

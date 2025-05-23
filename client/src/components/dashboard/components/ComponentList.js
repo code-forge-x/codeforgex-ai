@@ -62,7 +62,7 @@ const ComponentList = () => {
   const fetchComponents = async () => {
     try {
       setLoading(true);
-      let url = `${API_URL}/prompts/components?page=${currentPage}&limit=${itemsPerPage}`;
+      let url = `${API_URL}/api/prompts/components?page=${currentPage}&limit=${itemsPerPage}`;
       if (searchTerm) url += `&search=${searchTerm}`;
       if (selectedCategory) url += `&category=${selectedCategory}`;
       
@@ -87,7 +87,7 @@ const ComponentList = () => {
     try {
       setLoading(true);
       const response = await axios.delete(
-        `${API_URL}/prompts/components/${selectedComponent._id}`,
+        `${API_URL}/api/prompts/components/${selectedComponent._id}`,
         getAuthHeaders()
       );
       
@@ -125,7 +125,7 @@ const ComponentList = () => {
     try {
       setLoading(true);
       const response = await axios.put(
-        `${API_URL}/prompts/components/${selectedComponent._id}`,
+        `${API_URL}/api/prompts/components/${selectedComponent._id}`,
         {
           name: editingComponent.name,
           description: editingComponent.description,
@@ -169,7 +169,7 @@ const ComponentList = () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        `${API_URL}/prompts/components`,
+        `${API_URL}/api/prompts/components`,
         newComponent,
         getAuthHeaders()
       );

@@ -40,7 +40,7 @@ export default function Prompts() {
 
   const fetchPrompts = async () => {
     try {
-      const response = await axios.get(`${API_URL}/prompts/templates`);
+      const response = await axios.get(`${API_URL}/api/prompts/templates`);
       setPrompts(response.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch prompts');
@@ -82,9 +82,9 @@ export default function Prompts() {
     e.preventDefault();
     try {
       if (editingPrompt) {
-        await axios.put(`${API_URL}/prompts/templates/${editingPrompt.id}`, formData);
+        await axios.put(`${API_URL}/api/prompts/templates/${editingPrompt.id}`, formData);
       } else {
-        await axios.post(`${API_URL}/prompts/templates`, formData);
+        await axios.post(`${API_URL}/api/prompts/templates`, formData);
       }
       fetchPrompts();
       handleCloseDialog();
@@ -96,7 +96,7 @@ export default function Prompts() {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this prompt?')) {
       try {
-        await axios.delete(`${API_URL}/prompts/templates/${id}`);
+        await axios.delete(`${API_URL}/api/prompts/templates/${id}`);
         fetchPrompts();
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to delete prompt');

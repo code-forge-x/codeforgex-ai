@@ -28,9 +28,9 @@ export default function PromptComponentForm({ open, onClose, component = null })
     setError(null);
     try {
       if (component) {
-        await axios.put(`${API_URL}/prompts/components/${component.id}`, formData);
+        await axios.put(`${API_URL}/api/prompts/components/${component.id}`, formData);
       } else {
-        await axios.post(`${API_URL}/prompts/components`, formData);
+        await axios.post(`${API_URL}/api/prompts/components`, formData);
       }
       onClose();
     } catch (err) {
